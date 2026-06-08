@@ -28,7 +28,7 @@ const out = (cmd, args, opts = {}) => execFileSync(cmd, args, { encoding: 'utf8'
 const ok = (cmd, args) => { try { execFileSync(cmd, args, { stdio: 'ignore', shell: WIN }); return true } catch { return false } }
 
 const NAME = process.argv[2]
-if (!NAME) die('Usage: node scripts/sync-skill.mjs <name>\n  e.g. node scripts/sync-skill.mjs financial-forecast', 2)
+if (!NAME) die('Usage: node scripts/sync-skill.mjs <name>\n  e.g. node scripts/sync-skill.mjs my-skill', 2)
 
 // Name -> public repo + commit-message label (legacy quirks live in the config).
 const { repo: PUB_REPO, label: LABEL } = repoFor(NAME)
