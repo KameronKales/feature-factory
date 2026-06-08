@@ -43,22 +43,26 @@ const required = (label, v) => {
 // Repo root (where skills/ and .claude-plugin/ live) — safe local default.
 export const ROOT = val('FACTORY_ROOT', 'root', resolve(__dirname, '..'))
 
-// --- Push-target identity: REQUIRED, no default (read lazily via getters) ---
-export const ORG = required('org', val('FACTORY_ORG', 'org'))
-export const CATALOG_REPO = required('catalogRepo', val('FACTORY_CATALOG_REPO', 'catalogRepo'))
+// --- Push-target identity: REQUIRED, no default. Resolved LAZILY via getters so that
+// importing this module — and local, non-pushing commands like `new-skill` scaffolding —
+// never throw on a missing org/catalogRepo. Only an actual push/publish trips required().
+const _org = val('FACTORY_ORG', 'org')                       // raw, may be undefined
+const _catalog = val('FACTORY_CATALOG_REPO', 'catalogRepo')  // raw, may be undefined
+export const getOrg = () => required('org', _org)
+export const getCatalogRepo = () => required('catalogRepo', _catalog)
 
 // Repo-name prefix for per-skill repos (e.g. "myproj-"). Default "" (no prefix).
 export const SKILL_REPO_PREFIX = val('FACTORY_SKILL_REPO_PREFIX', 'skillRepoPrefix', '')
 
-// --- Cosmetic fields: neutral fallbacks (never a push target) ---
-export const MONOREPO = val('FACTORY_MONOREPO', 'monorepo', ORG ? `${ORG}/monorepo` : 'your-org/monorepo')
+// --- Cosmetic fields: neutral fallbacks (never throw, never a push target) ---
+export const MONOREPO = val('FACTORY_MONOREPO', 'monorepo', _org ? `${_org}/monorepo` : 'your-org/monorepo')
 export const PRODUCT_NAME = val('FACTORY_PRODUCT_NAME', 'productName', 'the')
 export const MCP_URL = val('FACTORY_MCP_URL', 'mcpUrl', '')
 export const GIT_NAME = val('SYNC_GIT_NAME', 'gitName', 'skill-sync')
 export const GIT_EMAIL = val('SYNC_GIT_EMAIL', 'gitEmail', 'noreply@example.com')
 export const AUTHOR = {
-  name: val('FACTORY_AUTHOR_NAME', 'authorName', ORG),
-  url: val('FACTORY_AUTHOR_URL', 'authorUrl', `https://github.com/${ORG}`),
+  name: val('FACTORY_AUTHOR_NAME', 'authorName', _org || 'your-org'),
+  url: val('FACTORY_AUTHOR_URL', 'authorUrl', `https://github.com/${_org || 'your-org'}`),
 }
 
 export const defaultDesc = (name) =>
@@ -74,7 +78,7 @@ export const LEGACY_REPOS = (() => {
 
 // Resolve a skill name -> { repo, label } for its public distribution repo.
 export const repoFor = (name) =>
-  LEGACY_REPOS[name] || { repo: `${ORG}/${SKILL_REPO_PREFIX}${name}`, label: name }
+  LEGACY_REPOS[name] || { repo: `${getOrg()}/${SKILL_REPO_PREFIX}${name}`, label: name }
 
 // Map a skill name -> its public repo slug (the part after the org), honoring legacy names.
 export const repoSlug = (name) => repoFor(name).repo.split('/')[1]

@@ -17,7 +17,7 @@
 import { execFileSync } from 'node:child_process'
 import { join } from 'node:path'
 import fs from 'node:fs'
-import { ROOT, ORG, SKILL_REPO_PREFIX, AUTHOR, defaultDesc } from './factory.config.mjs'
+import { ROOT, getOrg, SKILL_REPO_PREFIX, AUTHOR, defaultDesc } from './factory.config.mjs'
 
 function die(msg, code = 1) { console.error(msg); process.exit(code) }
 
@@ -37,7 +37,12 @@ if (!/^[a-z][a-z0-9-]+$/.test(NAME)) die(`✗ Invalid name '${NAME}' — must ma
 const TPL = join(ROOT, 'templates/skill')
 const SKILL_DIR = join(ROOT, 'skills', NAME)
 const MARKET = join(ROOT, '.claude-plugin/marketplace.json')
-const REPO = `${ORG}/${SKILL_REPO_PREFIX}${NAME}`
+// org is REQUIRED only to --publish; for local scaffolding the {{REPO}} placeholder
+// best-efforts it (so a no-config clone can still scaffold without throwing).
+const resolveOrg = (requireIt) => {
+  try { return getOrg() } catch (e) { if (requireIt) throw e; return 'your-org' }
+}
+const REPO = `${resolveOrg(PUBLISH)}/${SKILL_REPO_PREFIX}${NAME}`
 const YEAR = String(new Date().getFullYear())
 if (!DESC) DESC = defaultDesc(NAME)
 
@@ -68,6 +73,12 @@ if (fs.existsSync(SKILL_DIR)) {
   render(join(TPL, 'LICENSE'), join(SKILL_DIR, 'LICENSE'))
 }
 
+// Seed the marketplace manifest if a fresh clone doesn't have one yet, so the
+// register-the-skill step never dies with a raw ENOENT.
+if (!fs.existsSync(MARKET)) {
+  fs.mkdirSync(join(ROOT, '.claude-plugin'), { recursive: true })
+  fs.writeFileSync(MARKET, JSON.stringify({ name: 'skills', plugins: [] }, null, 2) + '\n')
+}
 // Idempotently ensure a marketplace plugins[] entry (append only if absent).
 const market = JSON.parse(fs.readFileSync(MARKET, 'utf8'))
 if ((market.plugins || []).some((p) => p.name === NAME)) {

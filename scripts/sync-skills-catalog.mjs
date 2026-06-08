@@ -12,7 +12,7 @@ import { execFileSync } from 'node:child_process'
 import { join } from 'node:path'
 import fs from 'node:fs'
 import os from 'node:os'
-import { ROOT as SRC, CATALOG_REPO, MONOREPO, MCP_URL, ORG, SKILL_REPO_PREFIX, PRODUCT_NAME, repoSlug, GIT_NAME, GIT_EMAIL } from './factory.config.mjs'
+import { ROOT as SRC, getCatalogRepo, getOrg, MONOREPO, MCP_URL, SKILL_REPO_PREFIX, PRODUCT_NAME, repoSlug, GIT_NAME, GIT_EMAIL } from './factory.config.mjs'
 
 const WIN = process.platform === 'win32'
 const die = (m, c = 1) => { console.error(m); process.exit(c) }
@@ -20,6 +20,13 @@ const run = (cmd, args) => execFileSync(cmd, args, { stdio: 'inherit', shell: WI
 const out = (cmd, args) => execFileSync(cmd, args, { encoding: 'utf8', shell: WIN }).trim()
 const ok = (cmd, args) => { try { execFileSync(cmd, args, { stdio: 'ignore', shell: WIN }); return true } catch { return false } }
 
+// This is a PUSH script, so the org + catalog repo are genuinely required here.
+const ORG = getOrg()
+const CATALOG_REPO = getCatalogRepo()
+const SRC_MARKET = join(SRC, '.claude-plugin/marketplace.json')
+if (!fs.existsSync(SRC_MARKET)) {
+  die(`No ${SRC_MARKET}. Create it ({"plugins":[]}) or scaffold a skill first (npm run new:skill <name>).`)
+}
 const PUB_REPO = CATALOG_REPO
 const SHA = out('git', ['-C', SRC, 'rev-parse', '--short', 'HEAD'])
 const TMP = fs.mkdtempSync(join(os.tmpdir(), 'catalog-sync-'))
@@ -49,11 +56,15 @@ fs.cpSync(join(SRC, 'skills'), destSkills, {
   },
 })
 fs.mkdirSync(join(TMP, '.claude-plugin'), { recursive: true })
-fs.copyFileSync(join(SRC, '.claude-plugin/marketplace.json'), join(TMP, '.claude-plugin/marketplace.json'))
-fs.copyFileSync(join(SRC, 'skills/str-investment-analyzer/LICENSE'), join(TMP, 'LICENSE'))
+fs.copyFileSync(SRC_MARKET, join(TMP, '.claude-plugin/marketplace.json'))
+// Catalog LICENSE: use the repo-root LICENSE (project-agnostic) rather than a hardcoded
+// per-skill path. Skip if the project ships no root LICENSE.
+if (fs.existsSync(join(SRC, 'LICENSE'))) {
+  fs.copyFileSync(join(SRC, 'LICENSE'), join(TMP, 'LICENSE'))
+}
 
 // Generate the catalog README from marketplace.json.
-const market = JSON.parse(fs.readFileSync(join(SRC, '.claude-plugin/marketplace.json'), 'utf8'))
+const market = JSON.parse(fs.readFileSync(SRC_MARKET, 'utf8'))
 const COUNT = (market.plugins || []).length
 const skillRows = (market.plugins || []).map((p) => {
   const slug = repoSlug(p.name)

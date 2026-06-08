@@ -1,0 +1,23 @@
+{
+  "name": "feature-factory",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Project-agnostic, hands-off research → build → ship harness. The scripts here are the reusable engine; this manifest is what the docs' `npm run` commands resolve to.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "factory-new-skill": "scripts/new-skill.mjs",
+    "factory-sync-skill": "scripts/sync-skill.mjs",
+    "factory-sync-catalog": "scripts/sync-skills-catalog.mjs"
+  },
+  "scripts": {
+    "test": "node --test scripts/__tests__/",
+    "check": "node scripts/__tests__/syntax.check.mjs",
+    "new:skill": "node scripts/new-skill.mjs",
+    "sync:skill": "node scripts/sync-skill.mjs",
+    "sync:catalog": "node scripts/sync-skills-catalog.mjs"
+  }
+}

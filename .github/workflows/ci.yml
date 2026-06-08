@@ -1,0 +1,23 @@
+name: CI
+
+# The factory's own pre-ship gate — it now holds itself to the same "automated gate
+# before shipping" rule the Feature Playbook mandates for every product it builds.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Zero npm dependencies — the harness is 100% Node built-ins (node --check + node:test).
+      - name: Parse-check every harness script
+        run: npm run check
+      - name: Test suite
+        run: npm test
