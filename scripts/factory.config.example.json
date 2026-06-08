@@ -1,0 +1,14 @@
+{
+  "_comment": "Copy this to scripts/factory.config.json and fill in YOUR values. There are no built-in defaults for push targets, so the sync/publish scripts refuse to run until org + catalogRepo are set — that prevents a clone from ever pushing to someone else's repos.",
+  "org": "your-github-org-or-user",
+  "skillRepoPrefix": "",
+  "catalogRepo": "your-org/your-skills-catalog",
+  "monorepo": "your-org/your-monorepo",
+  "productName": "YourProduct",
+  "mcpUrl": "https://your-mcp-server.example/mcp",
+  "gitName": "skill-sync",
+  "gitEmail": "noreply@example.com",
+  "authorName": "your-org",
+  "authorUrl": "https://github.com/your-github-org-or-user",
+  "legacyRepos": {}
+}

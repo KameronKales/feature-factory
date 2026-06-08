@@ -1,0 +1,13 @@
+{
+  "name": "{{NAME}}",
+  "version": "1.0.0",
+  "description": "{{DESCRIPTION}}",
+  "license": "MIT",
+  "author": {
+    "name": "{{REPO}}",
+    "url": "https://github.com/{{REPO}}"
+  },
+  "homepage": "https://github.com/{{REPO}}",
+  "repository": "https://github.com/{{REPO}}",
+  "keywords": []
+}

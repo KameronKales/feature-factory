@@ -1,0 +1,7 @@
+# Your project identity — never commit it; copy from factory.config.example.json
+scripts/factory.config.json
+
+node_modules/
+.DS_Store
+*.log
+.claude/scheduled_tasks.lock
