@@ -59,7 +59,12 @@ fs.rmSync(destSkill, { recursive: true, force: true })
 fs.cpSync(join(SRC, SKILL_DIR), destSkill, { recursive: true })
 
 // Per-repo marketplace lists ONLY this skill's plugin.
-const market = JSON.parse(fs.readFileSync(join(SRC, '.claude-plugin/marketplace.json'), 'utf8'))
+const SRC_MARKET = join(SRC, '.claude-plugin/marketplace.json')
+if (!fs.existsSync(SRC_MARKET)) {
+  console.error(`No ${SRC_MARKET}. Create it ({"plugins":[]}) or scaffold a skill first (npm run new:skill <name>).`)
+  process.exit(1)
+}
+const market = JSON.parse(fs.readFileSync(SRC_MARKET, 'utf8'))
 market.plugins = (market.plugins || []).filter((p) => p.name === NAME)
 fs.mkdirSync(join(TMP, '.claude-plugin'), { recursive: true })
 fs.writeFileSync(join(TMP, '.claude-plugin/marketplace.json'), JSON.stringify(market, null, 2) + '\n')
