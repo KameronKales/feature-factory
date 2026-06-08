@@ -33,7 +33,10 @@ const NAME = ARGS.find((a) => !a.startsWith('--'))
 if (!NAME) die('Usage: node scripts/sync-skill.mjs <name> [--dry-run]\n  e.g. node scripts/sync-skill.mjs my-skill', 2)
 
 // Name -> public repo + commit-message label (legacy quirks live in the config).
-const { repo: PUB_REPO, label: LABEL } = repoFor(NAME)
+// org is only needed for a real push; a dry-run preview tolerates it being unset.
+let PUB_REPO, LABEL
+try { ({ repo: PUB_REPO, label: LABEL } = repoFor(NAME)) }
+catch (e) { if (!DRY) throw e; PUB_REPO = `<unconfigured-org>/${NAME}`; LABEL = NAME }
 
 const SKILL_DIR = `skills/${NAME}`
 if (!fs.existsSync(join(SRC, SKILL_DIR, 'SKILL.md'))) die(`✗ No skill found at ${SKILL_DIR} (missing dir or SKILL.md).`)

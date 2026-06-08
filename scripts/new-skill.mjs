@@ -43,7 +43,8 @@ const MARKET = join(ROOT, '.claude-plugin/marketplace.json')
 const resolveOrg = (requireIt) => {
   try { return getOrg() } catch (e) { if (requireIt) throw e; return 'your-org' }
 }
-const REPO = `${resolveOrg(PUBLISH)}/${SKILL_REPO_PREFIX}${NAME}`
+// org is required only for a REAL publish; a dry-run preview uses a placeholder.
+const REPO = `${resolveOrg(PUBLISH && !DRY)}/${SKILL_REPO_PREFIX}${NAME}`
 const YEAR = String(new Date().getFullYear())
 if (!DESC) DESC = defaultDesc(NAME)
 
@@ -65,6 +66,8 @@ const render = (src, dst) => {
 
 if (fs.existsSync(SKILL_DIR)) {
   console.log(`• skills/${NAME} already exists — skipping scaffold (will not clobber authored files).`)
+} else if (DRY) {
+  console.log(`[dry-run] would scaffold skills/${NAME}/ (SKILL.md, README.md, .claude-plugin/plugin.json, LICENSE) from templates/skill`)
 } else {
   console.log(`→ Scaffolding skills/${NAME} from templates/skill`)
   fs.mkdirSync(join(SKILL_DIR, '.claude-plugin'), { recursive: true })
@@ -74,28 +77,32 @@ if (fs.existsSync(SKILL_DIR)) {
   render(join(TPL, 'LICENSE'), join(SKILL_DIR, 'LICENSE'))
 }
 
-// Seed the marketplace manifest if a fresh clone doesn't have one yet, so the
-// register-the-skill step never dies with a raw ENOENT.
-if (!fs.existsSync(MARKET)) {
-  fs.mkdirSync(join(ROOT, '.claude-plugin'), { recursive: true })
-  fs.writeFileSync(MARKET, JSON.stringify({ name: 'skills', plugins: [] }, null, 2) + '\n')
-}
-// Idempotently ensure a marketplace plugins[] entry (append only if absent).
-const market = JSON.parse(fs.readFileSync(MARKET, 'utf8'))
-if ((market.plugins || []).some((p) => p.name === NAME)) {
-  console.log(`• marketplace.json already lists '${NAME}'.`)
+// Marketplace registration. Skipped ENTIRELY in dry-run — --dry-run must write nothing.
+if (DRY) {
+  console.log(`[dry-run] would ensure '${NAME}' is registered in .claude-plugin/marketplace.json`)
 } else {
-  console.log(`→ Adding '${NAME}' to .claude-plugin/marketplace.json`)
-  market.plugins = market.plugins || []
-  market.plugins.push({
-    name: NAME,
-    source: `./skills/${NAME}`,
-    description: DESC,
-    version: '1.0.0',
-    license: 'MIT',
-    author: { ...AUTHOR },
-  })
-  fs.writeFileSync(MARKET, JSON.stringify(market, null, 2) + '\n')
+  // Seed the manifest if a fresh clone doesn't have one yet (avoids a raw ENOENT).
+  if (!fs.existsSync(MARKET)) {
+    fs.mkdirSync(join(ROOT, '.claude-plugin'), { recursive: true })
+    fs.writeFileSync(MARKET, JSON.stringify({ name: 'skills', plugins: [] }, null, 2) + '\n')
+  }
+  // Idempotently ensure a marketplace plugins[] entry (append only if absent).
+  const market = JSON.parse(fs.readFileSync(MARKET, 'utf8'))
+  if ((market.plugins || []).some((p) => p.name === NAME)) {
+    console.log(`• marketplace.json already lists '${NAME}'.`)
+  } else {
+    console.log(`→ Adding '${NAME}' to .claude-plugin/marketplace.json`)
+    market.plugins = market.plugins || []
+    market.plugins.push({
+      name: NAME,
+      source: `./skills/${NAME}`,
+      description: DESC,
+      version: '1.0.0',
+      license: 'MIT',
+      author: { ...AUTHOR },
+    })
+    fs.writeFileSync(MARKET, JSON.stringify(market, null, 2) + '\n')
+  }
 }
 
 if (PUBLISH && DRY) {
