@@ -20,14 +20,16 @@ const run = (cmd, args) => execFileSync(cmd, args, { stdio: 'inherit', shell: WI
 const out = (cmd, args) => execFileSync(cmd, args, { encoding: 'utf8', shell: WIN }).trim()
 const ok = (cmd, args) => { try { execFileSync(cmd, args, { stdio: 'ignore', shell: WIN }); return true } catch { return false } }
 
-// This is a PUSH script, so the org + catalog repo are genuinely required here.
-const ORG = getOrg()
-const CATALOG_REPO = getCatalogRepo()
+const DRY = process.argv.slice(2).includes('--dry-run')
+// PUSH script: org + catalog repo are genuinely required for a real run, but a dry-run
+// preview tolerates them being unset (shows a placeholder) so you can preview pre-config.
+let ORG, CATALOG_REPO
+try { ORG = getOrg(); CATALOG_REPO = getCatalogRepo() }
+catch (e) { if (!DRY) throw e; ORG = '<unconfigured-org>'; CATALOG_REPO = '<unconfigured-org>/<catalog>' }
 const SRC_MARKET = join(SRC, '.claude-plugin/marketplace.json')
 if (!fs.existsSync(SRC_MARKET)) {
   die(`No ${SRC_MARKET}. Create it ({"plugins":[]}) or scaffold a skill first (npm run new:skill <name>).`)
 }
-const DRY = process.argv.slice(2).includes('--dry-run')
 const PUB_REPO = CATALOG_REPO
 const SHA = out('git', ['-C', SRC, 'rev-parse', '--short', 'HEAD'])
 if (DRY) {
