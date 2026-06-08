@@ -27,8 +27,10 @@ const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: 'inherit'
 const out = (cmd, args, opts = {}) => execFileSync(cmd, args, { encoding: 'utf8', shell: WIN, ...opts }).trim()
 const ok = (cmd, args) => { try { execFileSync(cmd, args, { stdio: 'ignore', shell: WIN }); return true } catch { return false } }
 
-const NAME = process.argv[2]
-if (!NAME) die('Usage: node scripts/sync-skill.mjs <name>\n  e.g. node scripts/sync-skill.mjs my-skill', 2)
+const ARGS = process.argv.slice(2)
+const DRY = ARGS.includes('--dry-run')
+const NAME = ARGS.find((a) => !a.startsWith('--'))
+if (!NAME) die('Usage: node scripts/sync-skill.mjs <name> [--dry-run]\n  e.g. node scripts/sync-skill.mjs my-skill', 2)
 
 // Name -> public repo + commit-message label (legacy quirks live in the config).
 const { repo: PUB_REPO, label: LABEL } = repoFor(NAME)
@@ -37,6 +39,10 @@ const SKILL_DIR = `skills/${NAME}`
 if (!fs.existsSync(join(SRC, SKILL_DIR, 'SKILL.md'))) die(`✗ No skill found at ${SKILL_DIR} (missing dir or SKILL.md).`)
 
 const SHA = out('git', ['-C', SRC, 'rev-parse', '--short', 'HEAD'])
+if (DRY) {
+  console.log(`[dry-run] would sync ${SKILL_DIR} (${MONOREPO}@${SHA}) → https://github.com/${PUB_REPO} (HEAD:main). No clone, no push.`)
+  process.exit(0)
+}
 const TMP = fs.mkdtempSync(join(os.tmpdir(), 'skill-sync-'))
 const cleanup = () => { try { fs.rmSync(TMP, { recursive: true, force: true }) } catch { /* noop */ } }
 process.on('exit', cleanup)

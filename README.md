@@ -60,5 +60,8 @@ See [`docs/FEATURE_FACTORY.md`](docs/FEATURE_FACTORY.md) for the full architectu
 - No push-target defaults — scripts throw a clear error until configured.
 - Pushing also requires your own `gh` auth or a `SKILL_SYNC_TOKEN`; a clone without credentials can't
   push regardless.
+- **`--dry-run`** on `new-skill` (`--publish`), `sync-skill`, and `sync-skills-catalog` prints exactly
+  what would be created/pushed and exits without any network call, repo create, or push — preview an
+  irreversible publish before you run it for real.
 
 MIT licensed.
