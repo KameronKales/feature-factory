@@ -1,6 +1,15 @@
-// Reusable workflow: build ONE gap end-to-end per docs/FEATURE_PLAYBOOK.md (engine →
-// tests → web IA + homepage → MCP → distribution), using scripts/safe-jest.mjs so tests
-// can't hang. Invoke with a single gap object (from research-gaps) as args:
+// ⚠️ CUSTOMIZE-PER-PROJECT TEMPLATE (worked example: a finance web-app + MCP product).
+// Unlike research-gaps.js (which is fully product-neutral), build-gap encodes a concrete
+// ARCHITECTURE: a four-layer engine|mcp|web|skill model with specific paths (src/lib,
+// workers/ai-mcp, src/components, skills/) and a finance-shaped Definition of Done. That
+// coupling is intentional — the build step is where you adapt the factory to YOUR stack.
+// To reuse: keep the Investigate→Synthesize→Implement→Verify spine + safe-jest gating, and
+// REPLACE the layer keys, file groups, exemplar components, and DoD checks with your own
+// (and point docs/FEATURE_PLAYBOOK.md at your DoD). See docs/FEATURE_FACTORY.md.
+//
+// Build ONE gap end-to-end per docs/FEATURE_PLAYBOOK.md (engine → tests → web IA + homepage
+// → MCP → distribution), using scripts/safe-jest.mjs so tests can't hang. Invoke with a
+// single gap object (from research-gaps) as args:
 //   Workflow({ name: 'build-gap', args: { slug, name, description, audience,
 //              recommended_tool, distribution: 'new-skill'|'fold-in', skill_route, scope } })
 // Remote repo create / first-sync / merge / deploy are MAIN-LOOP steps after this returns.
@@ -18,7 +27,7 @@ export const meta = {
 const gap = typeof args === 'string' ? JSON.parse(args) : (args || {})
 // Repo root: pass `root` in args to run this in any project. The workflow sandbox
 // has no process/cwd access, so it can't be auto-detected — default is this repo.
-const ROOT = gap.root || '/absolute/path/to/YOUR-repo'
+const ROOT = gap.root || '.'
 if (!gap.slug || !gap.recommended_tool) throw new Error('build-gap requires args = { slug, recommended_tool, ... }')
 const TOOL = gap.recommended_tool
 const SCOPE = gap.scope || 'full'
