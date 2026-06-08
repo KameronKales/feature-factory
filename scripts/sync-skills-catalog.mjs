@@ -27,8 +27,14 @@ const SRC_MARKET = join(SRC, '.claude-plugin/marketplace.json')
 if (!fs.existsSync(SRC_MARKET)) {
   die(`No ${SRC_MARKET}. Create it ({"plugins":[]}) or scaffold a skill first (npm run new:skill <name>).`)
 }
+const DRY = process.argv.slice(2).includes('--dry-run')
 const PUB_REPO = CATALOG_REPO
 const SHA = out('git', ['-C', SRC, 'rev-parse', '--short', 'HEAD'])
+if (DRY) {
+  const n = (JSON.parse(fs.readFileSync(SRC_MARKET, 'utf8')).plugins || []).length
+  console.log(`[dry-run] would sync ${n} skill(s) (${MONOREPO}@${SHA}) → https://github.com/${PUB_REPO} (HEAD:main). No clone, no push.`)
+  process.exit(0)
+}
 const TMP = fs.mkdtempSync(join(os.tmpdir(), 'catalog-sync-'))
 process.on('exit', () => { try { fs.rmSync(TMP, { recursive: true, force: true }) } catch { /* noop */ } })
 

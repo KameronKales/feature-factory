@@ -24,9 +24,10 @@ function die(msg, code = 1) { console.error(msg); process.exit(code) }
 // --- parse args ---
 const argv = process.argv.slice(2)
 const NAME = argv[0] && !argv[0].startsWith('--') ? argv[0] : ''
-let PUBLISH = false, DESC = '', TOOLS = ''
+let PUBLISH = false, DESC = '', TOOLS = '', DRY = false
 for (let i = NAME ? 1 : 0; i < argv.length; i++) {
   if (argv[i] === '--publish') PUBLISH = true
+  else if (argv[i] === '--dry-run') DRY = true
   else if (argv[i] === '--desc') DESC = argv[++i] || ''
   else if (argv[i] === '--tools') TOOLS = argv[++i] || ''
   else die(`Unknown arg: ${argv[i]}`, 2)
@@ -97,7 +98,9 @@ if ((market.plugins || []).some((p) => p.name === NAME)) {
   fs.writeFileSync(MARKET, JSON.stringify(market, null, 2) + '\n')
 }
 
-if (PUBLISH) {
+if (PUBLISH && DRY) {
+  console.log(`[dry-run] would: gh repo create ${REPO} --public (if absent), then sync skills/${NAME} → ${REPO}. No repo created, no push.`)
+} else if (PUBLISH) {
   const sh = (cmd, args) => execFileSync(cmd, args, { stdio: 'inherit', shell: process.platform === 'win32' })
   const ok = (cmd, args) => { try { execFileSync(cmd, args, { stdio: 'ignore', shell: process.platform === 'win32' }); return true } catch { return false } }
   if (!ok('gh', ['--version'])) die('✗ --publish needs the gh CLI.')

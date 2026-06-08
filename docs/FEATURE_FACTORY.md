@@ -19,7 +19,8 @@ publishing), all of which install natively on every OS.
 
 Two saved **workflows** do the heavy lifting (each fans out parallel AI subagents); the **main loop**
 (the assistant) orchestrates them, verifies the result on the local machine, and ships. A small set of
-**Node helper scripts** provide resilience and the mechanical git/test plumbing.
+**Node helper scripts** provide hang-proof tests + keep-awake + the mechanical git/test plumbing
+(the watchdog/backoff/recovery are main-loop *behaviors*, not scripts — see "What makes it run unattended").
 
 ---
 
@@ -98,10 +99,22 @@ What happens:
 ---
 
 ## What makes it run unattended
+
+Two kinds of resilience — **don't confuse them**:
+
+**Node scripts (real, runnable code):**
 - **Hang-proof tests** (`safe-jest.mjs`) — a stuck test can't silently block the run forever.
 - **Keep-awake** (`keep-awake.mjs`) — the machine won't sleep and pause workflows.
-- **Self-healing watchdog** — a recurring check detects a stalled build, verifies the code itself,
-  backs off on rate limits instead of hammering, flags anything it can't safely do, and cleans up.
+
+**Assistant behaviors (model-judgment, driven by the `feature-factory` skill — NOT scripts):**
+- **Self-healing watchdog** — the assistant schedules a recurring check (via its scheduler/cron),
+  and on each fire detects a stalled build, verifies the code itself with safe-jest, **backs off on
+  token rate limits** instead of hammering, flags anything it can't safely do, and cleans up.
+- **Crash/rate-limit recovery + sequential, shared-file builds** — also main-loop behaviors.
+
+There is intentionally **no `watchdog.mjs`**: the watchdog needs the assistant's scheduler + judgment,
+so it lives in `skills/feature-factory/SKILL.md`, not in `scripts/`.
+
 - **A real Definition of Done** — every feature ships the same way; no half-features.
 
 ## Adapting it to another product
