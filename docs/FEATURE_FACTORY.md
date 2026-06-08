@@ -26,14 +26,29 @@ Two saved **workflows** do the heavy lifting (each fans out parallel AI subagent
 ## Components
 
 ### 1. Workflows (`.claude/workflows/`)
-- **`research-gaps.js`** — fans out one auditor per financial domain (taxes, real estate, decumulation,
-  …), each grepping the real codebase to confirm what's actually missing (not guessed). A ranking pass
-  dedupes, drops false positives, excludes already-built skills, and emits a **build-ready list**:
-  `{ slug, name, description, audience, evidence, recommended_tool, distribution, skill_route, scope, priority }`.
-- **`build-gap.js`** — builds ONE gap in four phases: **Investigate** (parallel, read-only) → **Synthesize**
-  (one plan + hand-computed reference targets + four disjoint file-groups) → **Implement** (engine first,
-  then MCP ∥ web in parallel, then the skill) → **Verify** (scoped test suites + build + an adversarial
-  DoD check).
+- **`research-gaps.js`** — **product-neutral**: fans out one auditor per domain (the domains, focus, repo
+  root, and where-to-look surface all come from `args` — nothing is baked in), each discovering the
+  project's own capabilities and grepping the real codebase to confirm what's actually missing (not
+  guessed). A ranking pass dedupes, drops false positives, excludes already-built work, and emits a
+  **build-ready list**: `{ slug, name, description, audience, evidence, recommended_tool, distribution, skill_route, scope, priority }`.
+  Invoke for any project:
+  ```
+  Workflow({ name: 'research-gaps', args: {
+    root: '/abs/path/to/your/repo',
+    domains: ['onboarding', 'billing', 'reliability', ...],
+    focus: 'what your product is really for',
+    surface: 'its REST API + CLI',   // or 'its MCP tool registry', etc.
+  } })
+  ```
+  Worked example (a personal-finance product): pass `domains: ['accumulation & FIRE', 'taxes',
+  'decumulation', 'real estate', 'debt & cashflow', 'equity comp', 'protection/estate', 'guaranteed
+  income', 'fixed income', 'relocation', ...]` and `surface: 'its MCP tool registry + engine modules'`.
+- **`build-gap.js`** — a **customize-per-project template** (worked example: a finance web-app + MCP
+  product). Unlike research-gaps it intentionally encodes a concrete architecture — a four-layer
+  `engine|mcp|web|skill` model with specific paths and a product-shaped Definition of Done. Keep the
+  spine (**Investigate** → **Synthesize** → **Implement** → **Verify**, all tests via `safe-jest`) and
+  **replace the layer keys / file groups / exemplar components / DoD checks with your own** (and point
+  `docs/FEATURE_PLAYBOOK.md` at your DoD). This is the one file you adapt to your stack.
 
 ### 2. The Definition of Done (`docs/FEATURE_PLAYBOOK.md`)
 The single source of truth for "what done looks like," so success isn't re-invented per feature. Every

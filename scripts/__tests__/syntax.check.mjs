@@ -7,6 +7,10 @@ import { readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
 
+// NOTE: only scripts/*.mjs are parse-checked. The .claude/workflows/*.js files use a
+// top-level `return` (valid inside the Workflow runtime's async wrapper, illegal as a
+// standalone module), so `node --check` can't parse them — their content is guarded by
+// scripts/__tests__/workflows.test.mjs instead.
 const here = dirname(fileURLToPath(import.meta.url))
 const scriptsDir = resolve(here, '..')
 const files = readdirSync(scriptsDir).filter((f) => f.endsWith('.mjs')).sort()
