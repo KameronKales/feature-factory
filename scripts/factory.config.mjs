@@ -65,8 +65,17 @@ export const AUTHOR = {
   url: val('FACTORY_AUTHOR_URL', 'authorUrl', `https://github.com/${_org || 'your-org'}`),
 }
 
-export const defaultDesc = (name) =>
-  val('FACTORY_DEFAULT_DESC', 'defaultDesc', `Thin orchestration over the public ${PRODUCT_NAME} MCP for the ${name} skill.`)
+export const defaultDesc = (name) => {
+  const configured = process.env.FACTORY_DEFAULT_DESC ?? file.defaultDesc
+  if (configured) return configured
+  // PRODUCT_NAME defaults to the neutral placeholder 'the'; only weave it into the
+  // description when it's actually been configured, so an unconfigured clone never
+  // emits the degenerate "...over the public the MCP...".
+  const product = (process.env.FACTORY_PRODUCT_NAME ?? file.productName ?? '').trim()
+  return product && product !== 'the'
+    ? `Thin orchestration over the public ${product} MCP for the ${name} skill.`
+    : `Thin orchestration layer for the ${name} skill — fill in what it does.`
+}
 
 // Skills whose public repo name / commit label differs from the convention
 // (repo = <ORG>/<PREFIX><name>, label = <name>). Default: none.

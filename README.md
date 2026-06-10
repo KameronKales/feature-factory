@@ -82,6 +82,9 @@ Repo health checks: `npm run check` (parse-check every script) and `npm test` (t
 | `monorepo` | `FACTORY_MONOREPO` | no | Source-of-truth repo slug (shown in generated docs) |
 | `productName` | `FACTORY_PRODUCT_NAME` | no | Display name in generated READMEs |
 | `mcpUrl` | `FACTORY_MCP_URL` | no | Your public MCP server URL |
+| `authorName` | `FACTORY_AUTHOR_NAME` | no (defaults to `org`) | Author name written into scaffolded skill metadata |
+| `authorUrl` | `FACTORY_AUTHOR_URL` | no (defaults to `github.com/<org>`) | Author URL written into scaffolded skill metadata |
+| `defaultDesc` | `FACTORY_DEFAULT_DESC` | no | Override the auto-generated one-line skill description |
 | `gitName` / `gitEmail` | `SYNC_GIT_NAME` / `SYNC_GIT_EMAIL` | no | Commit identity for sync pushes |
 | `updatesChannel` | `FACTORY_UPDATES_CHANNEL` | no | Chat webhook the run posts progress to (the assistant reads it; never hardcode it) |
 | `safeJestWorkerDir` | `SAFE_JEST_WORKER_DIR` | no (default `workers/ai-mcp`) | Second test root for `safe-jest --worker` — point at your own monorepo path |

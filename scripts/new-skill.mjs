@@ -27,6 +27,8 @@ Usage:
   node scripts/new-skill.mjs <name> [--publish] [--desc "..."] [--tools "a,b,c"] [--dry-run]
 
   <name>      lowercase kebab-case (^[a-z][a-z0-9-]+$)
+  --mode      mcp (default) = thin layer over an MCP server; local = a skill whose logic
+              is local or thin over your own CLI/API (use for non-MCP / fold-in products)
   --desc      one-line description (frontmatter + plugin + marketplace + README)
   --tools     comma-separated tool list rendered into SKILL.md's {{TOOLS}}
   --publish   gh repo create <org>/<prefix><name> --public, then sync (needs gh + config)
@@ -38,18 +40,24 @@ Usage:
 const argv = process.argv.slice(2)
 if (argv.includes('--help') || argv.includes('-h')) { process.stdout.write(USAGE); process.exit(0) }
 const NAME = argv[0] && !argv[0].startsWith('--') ? argv[0] : ''
-let PUBLISH = false, DESC = '', TOOLS = '', DRY = false
+let PUBLISH = false, DESC = '', TOOLS = '', DRY = false, MODE = 'mcp'
 for (let i = NAME ? 1 : 0; i < argv.length; i++) {
   if (argv[i] === '--publish') PUBLISH = true
   else if (argv[i] === '--dry-run') DRY = true
   else if (argv[i] === '--desc') DESC = argv[++i] || ''
   else if (argv[i] === '--tools') TOOLS = argv[++i] || ''
+  else if (argv[i] === '--mode') MODE = argv[++i] || ''
   else die(`Unknown arg: ${argv[i]}`, 2)
 }
+if (!['mcp', 'local'].includes(MODE)) die(`✗ --mode must be 'mcp' or 'local' (got '${MODE}').`, 2)
 if (!NAME) die('Usage: node scripts/new-skill.mjs <name> [--publish] [--desc "..."] [--tools "a,b,c"]', 2)
 if (!/^[a-z][a-z0-9-]+$/.test(NAME)) die(`✗ Invalid name '${NAME}' — must match ^[a-z][a-z0-9-]+$ (lowercase kebab-case).`, 2)
 
 const TPL = join(ROOT, 'templates/skill')
+// 'local' mode renders SKILL.md/README.md from templates/skill-local (non-MCP); shared
+// files (plugin.json, LICENSE) always come from templates/skill.
+const VARIANT = MODE === 'local' ? join(ROOT, 'templates/skill-local') : TPL
+const fromVariant = (f) => (fs.existsSync(join(VARIANT, f)) ? VARIANT : TPL)
 const SKILL_DIR = join(ROOT, 'skills', NAME)
 const MARKET = join(ROOT, '.claude-plugin/marketplace.json')
 // org is REQUIRED only to --publish; for local scaffolding the {{REPO}} placeholder
@@ -81,12 +89,12 @@ const render = (src, dst) => {
 if (fs.existsSync(SKILL_DIR)) {
   console.log(`• skills/${NAME} already exists — skipping scaffold (will not clobber authored files).`)
 } else if (DRY) {
-  console.log(`[dry-run] would scaffold skills/${NAME}/ (SKILL.md, README.md, .claude-plugin/plugin.json, LICENSE) from templates/skill`)
+  console.log(`[dry-run] would scaffold skills/${NAME}/ (SKILL.md, README.md, .claude-plugin/plugin.json, LICENSE) from templates/${MODE === 'local' ? 'skill-local' : 'skill'} (mode: ${MODE})`)
 } else {
-  console.log(`→ Scaffolding skills/${NAME} from templates/skill`)
+  console.log(`→ Scaffolding skills/${NAME} (mode: ${MODE}) from templates/${MODE === 'local' ? 'skill-local' : 'skill'}`)
   fs.mkdirSync(join(SKILL_DIR, '.claude-plugin'), { recursive: true })
-  render(join(TPL, 'SKILL.md'), join(SKILL_DIR, 'SKILL.md'))
-  render(join(TPL, 'README.md'), join(SKILL_DIR, 'README.md'))
+  render(join(fromVariant('SKILL.md'), 'SKILL.md'), join(SKILL_DIR, 'SKILL.md'))
+  render(join(fromVariant('README.md'), 'README.md'), join(SKILL_DIR, 'README.md'))
   render(join(TPL, '.claude-plugin/plugin.json'), join(SKILL_DIR, '.claude-plugin/plugin.json'))
   render(join(TPL, 'LICENSE'), join(SKILL_DIR, 'LICENSE'))
 }
@@ -141,10 +149,11 @@ if (PUBLISH && DRY) {
 
 console.log(`
 Next steps:
-  1. Edit skills/${NAME}/SKILL.md — fill in the route-by-intent tool orchestration
-     (one step per tool) and a FICTIONAL example. Keep it thin: gather → call → surface.
-  2. Verify each referenced tool exists in workers/ai-mcp/src/tool-names.ts.
+  1. Edit skills/${NAME}/SKILL.md — fill in how the skill routes a request to your
+     product's capability/tool(s) and a FICTIONAL example. Keep it thin: gather → call → surface.
+  2. Confirm every capability the skill references actually exists in your product
+     (e.g. your tool registry / API routes / CLI commands).
   3. Run scoped tests (NEVER bare 'npx jest' — it hangs):
        node scripts/safe-jest.mjs <path>
-       node scripts/safe-jest.mjs --worker
+     (Only use --worker if you've configured a second test root — see safe-jest.mjs --help.)
   4. Commit, then sync:  npm run sync:skill ${NAME}   (or re-run with --publish)`)
