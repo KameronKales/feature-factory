@@ -10,6 +10,52 @@ Done — designed to run unattended and recover from the usual things that derai
 **100% Node.js.** Runs identically on Windows, macOS, and Linux. The only external CLIs are `node`,
 `npm`, `git`, and `gh` (for publishing) — all install natively on every OS.
 
+## How it works (at a glance)
+
+```
+            you: "run the feature factory"
+                          │
+                          ▼
+ ┌───────────────────────────────────────────────────────────────────────┐
+ │  MAIN LOOP   — Claude Code, following skills/feature-factory/SKILL.md    │
+ │  orchestrates the run · verifies results locally · ships · self-heals    │
+ └──┬──────────────────────────────────────────────────────────┬──────────┘
+    │ 1. research                                                │ 2. build each gap
+    ▼                                                            ▼
+ ┌─────────────────────────┐   ranked gap list   ┌──────────────────────────┐
+ │  research-gaps           │  ────────────────►  │  build-gap                │
+ │  (workflow)              │  {slug, priority,   │  (workflow, per gap)      │
+ │  fans out AI auditors,   │   evidence, … }     │  engine → tests → UI →    │
+ │  greps YOUR codebase     │                     │  API/MCP → distribution   │
+ │  → finds real gaps       │                     │  (parallel subagents)     │
+ └─────────────────────────┘                     └─────────────┬────────────┘
+   product-agnostic                                            │ 3. verify LOCALLY
+   (no domain baked in)                                        ▼
+                                                  ┌──────────────────────────┐
+                                                  │  pre-ship gate            │
+                                                  │  tests + build + lint     │
+                                                  │  run by the MAIN LOOP     │
+                                                  │  (never a subagent's word)│
+                                                  └─────────────┬────────────┘
+                                                                │ 4. ship
+                                                                ▼
+                                                   commit · push · publish
+                                                   skill + catalog / deploy
+                                                   (loop to the next gap)
+
+ Supporting cast — what's what:
+   docs/FEATURE_PLAYBOOK.md     the Definition of Done every gap ships to   (you customize)
+   scripts/safe-jest.mjs        hang-proof test runner — a stuck test can't block the run
+   scripts/keep-awake.mjs       stops the machine sleeping during a long run
+   watchdog                     a MAIN-LOOP behavior (not a script): re-checks a stalled
+                                run, backs off on rate limits, cleans up when done
+   scripts/factory.config.json  your project identity (org, catalog repo) — gitignored
+```
+
+**The two workflows do the heavy lifting; the main loop (Claude Code) drives them, checks the work on
+your machine, and ships.** `research-gaps` is product-neutral; `build-gap` + the Playbook are the parts
+you adapt to your stack. Full architecture: [`docs/FEATURE_FACTORY.md`](docs/FEATURE_FACTORY.md).
+
 **New here?** Start with [`docs/QUICKSTART.md`](docs/QUICKSTART.md) (clone → verify → a real
 research-only first run in ~10 min), then read in order: [`docs/FEATURE_FACTORY.md`](docs/FEATURE_FACTORY.md)
 (how it works) → [`docs/ADAPTING.md`](docs/ADAPTING.md) (point it at *your* product, with a
