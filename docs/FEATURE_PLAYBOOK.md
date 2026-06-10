@@ -8,7 +8,8 @@
 > re-writing the success definition each time.** When the user says *"add financial tool X"*:
 > (1) copy the DoD template below into `docs/specs/<feature>.md` and fill only the feature-specific
 > blanks, (2) confirm the two standing decisions, (3) commit the spec, (4) run the standard build
-> workflow, (5) distribute via the factory. Worked example: `docs/specs/self-employed-retirement.md`.
+> workflow, (5) distribute via the factory. A filled-in example spec lives at
+> [`docs/specs/EXAMPLE.md`](specs/EXAMPLE.md).
 
 ## Two standing decisions (ask these per feature; defaults in **bold**)
 1. **Distribution** — **a new dedicated skill repo (`<org>/<prefix><skill>` + catalog) when it's a
@@ -122,4 +123,5 @@ Status: approved · Gap #{n} · Audience: {who}.
 {deferred}
 ```
 
-See also: `SKILL_STRATEGY.md` (portfolio + authoring principles), `SKILL_AUTHORING.md` (factory mechanics).
+See also: [`docs/ADAPTING.md`](ADAPTING.md) — how to retarget this playbook (and the build
+workflow) at a non-finance product, with a worked second-domain example.

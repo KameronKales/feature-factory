@@ -74,9 +74,13 @@ progress → tear down. `README.md` is the human-facing overview.
 | `sync-skill.mjs` | bash + `rsync`/`jq`/`awk` | Mirrors one skill to its public distribution repo. |
 | `sync-skills-catalog.mjs` | bash + `rsync`/`jq`/`perl` | Mirrors all skills + a generated catalog README to the public catalog repo. |
 
-### 5. CI (`.github/workflows/`)
-`sync-skills.yml` (per-skill, matrixed) and `sync-skills-catalog.yml` mirror skills to their public repos
-on every change — both now invoke the `.mjs` scripts, so they run identically locally and in CI.
+### 5. CI (`.github/workflows/ci.yml`)
+This repo ships one workflow — `ci.yml` — which is the factory's **own** pre-ship gate: on every
+push/PR it parse-checks every harness script (`npm run check`) and runs the test suite (`npm test`),
+holding the factory to the same "automated gate before shipping" rule it mandates for the products it
+builds. (In a real product repo you'd typically add a sync workflow that invokes `sync-skill.mjs` /
+`sync-skills-catalog.mjs` to mirror skills to their public repos on every change — because those are
+`.mjs` scripts, the same command runs identically locally and in CI.)
 
 ---
 
@@ -119,9 +123,14 @@ so it lives in `skills/feature-factory/SKILL.md`, not in `scripts/`.
 
 ## Adapting it to another product
 The harness is generic; the product-specific parts live in files you own:
-`research-gaps.js` (how gaps are discovered/ranked), `build-gap.js` (the build phases),
-`FEATURE_PLAYBOOK.md` (your DoD). Swap those; the resilience + orchestration + cross-platform scripts
-stay.
+`research-gaps.js` (how gaps are discovered/ranked — usually no edits, all domain detail comes from
+`args`), `build-gap.js` (the build phases + your layer model), `FEATURE_PLAYBOOK.md` (your DoD). Swap
+those; the resilience + orchestration + cross-platform scripts stay.
+
+**Full walkthrough:** [`docs/ADAPTING.md`](ADAPTING.md) — the 3-step adaptation with a worked
+non-finance example (a log-analytics SaaS), a domain-neutral build-gap starting point at
+[`docs/build-gap.generic.js`](build-gap.generic.js), and a filled example spec at
+[`docs/specs/EXAMPLE.md`](specs/EXAMPLE.md).
 
 ---
 

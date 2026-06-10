@@ -7,7 +7,9 @@ Done — designed to run unattended and recover from the usual things that derai
 **100% Node.js.** Runs identically on Windows, macOS, and Linux. The only external CLIs are `node`,
 `npm`, `git`, and `gh` (for publishing) — all install natively on every OS.
 
-See [`docs/FEATURE_FACTORY.md`](docs/FEATURE_FACTORY.md) for the full architecture.
+**New here?** Read in this order: [`docs/FEATURE_FACTORY.md`](docs/FEATURE_FACTORY.md) (how it works) →
+[`docs/ADAPTING.md`](docs/ADAPTING.md) (point it at *your* product, with a non-finance worked example) →
+[`docs/FEATURE_PLAYBOOK.md`](docs/FEATURE_PLAYBOOK.md) (the Definition of Done).
 
 ---
 

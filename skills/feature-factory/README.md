@@ -48,7 +48,8 @@ The whole system is **Node.js** — no bash, no platform-specific tools. Helpers
 as `node scripts/<x>.mjs`; the only external CLIs are `node`, `npm`, `git`, and `gh` (publishing), all
 of which run on Windows, macOS, and Linux. Anyone can clone and run it regardless of OS.
 
-> Built for [your product](https://your product.app) to scale its financial-planning toolset — open-sourced as a
-> pattern for anyone running Claude Code as an autonomous engineer.
+> Originally built to scale one product's financial-planning toolset — open-sourced as a
+> pattern for anyone running Claude Code as an autonomous engineer. See
+> [`docs/ADAPTING.md`](../../docs/ADAPTING.md) to point it at your own product.
 
 _MIT. Keep secrets (webhooks/tokens) in config — never in shared files._

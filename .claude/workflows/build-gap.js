@@ -33,7 +33,7 @@ const TOOL = gap.recommended_tool
 const SCOPE = gap.scope || 'full'
 
 const CTX = `
-Project ${ROOT}. READ docs/FEATURE_PLAYBOOK.md (the Definition of Done — follow every layer) + SKILL_STRATEGY.md (authoring principles). Build this gap:
+Project ${ROOT}. READ docs/FEATURE_PLAYBOOK.md (the Definition of Done — follow every layer; if the repo has any skill-authoring / portfolio docs, read those too). Build this gap:
   slug: ${gap.slug}
   name: ${gap.name || gap.slug}
   what it answers: ${gap.description || ''}
