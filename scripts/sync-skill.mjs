@@ -28,6 +28,19 @@ const out = (cmd, args, opts = {}) => execFileSync(cmd, args, { encoding: 'utf8'
 const ok = (cmd, args) => { try { execFileSync(cmd, args, { stdio: 'ignore', shell: WIN }); return true } catch { return false } }
 
 const ARGS = process.argv.slice(2)
+if (ARGS.includes('--help') || ARGS.includes('-h')) {
+  process.stdout.write(`sync-skill — mirror ONE skill to its public distribution repo.
+
+Usage:
+  node scripts/sync-skill.mjs <name> [--dry-run]   (or: npm run sync:skill <name>)
+
+  --dry-run   print what would be pushed and exit (no clone, no push)
+  --help      show this help
+
+Requires config (org) + auth: SKILL_SYNC_TOKEN, or the gh CLI authed (\`gh auth login\`).
+`)
+  process.exit(0)
+}
 const DRY = ARGS.includes('--dry-run')
 const NAME = ARGS.find((a) => !a.startsWith('--'))
 if (!NAME) die('Usage: node scripts/sync-skill.mjs <name> [--dry-run]\n  e.g. node scripts/sync-skill.mjs my-skill', 2)

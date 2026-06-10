@@ -16,30 +16,78 @@
 //
 // Usage:
 //   node scripts/safe-jest.mjs <path-or-pattern...>     # root jest
-//   node scripts/safe-jest.mjs --worker [args...]       # worker suite (workers/ai-mcp)
-//   SAFE_JEST_WALL=600 node scripts/safe-jest.mjs ...   # override the 300s wall clock
+//   node scripts/safe-jest.mjs --worker [args...]       # second test root (see below)
+//   node scripts/safe-jest.mjs --help                   # print this usage
+//   SAFE_JEST_WALL=600 node scripts/safe-jest.mjs ...    # override the 300s wall clock
+//
+// The `--worker` mode runs jest in a SECOND directory with its own config — useful for
+// monorepos that have a separate test root (the finance example uses workers/ai-mcp). It
+// is PRODUCT-SPECIFIC, so its location is configurable (defaults match the finance example
+// for backward-compatibility); point it at your own second root via env or factory.config:
+//   SAFE_JEST_WORKER_DIR=packages/api          (or factory.config.json "safeJestWorkerDir")
+//   SAFE_JEST_WORKER_CONFIG=jest.config.cjs    (or "safeJestWorkerConfig"; "" = jest's default)
+// If your product has only one test root, you don't need `--worker` at all — just pass paths.
 //
 // Exit codes: jest's code on completion; 124 on wall-clock timeout (a HANG, not a
 // test failure — re-scope / investigate, don't treat as a red test).
 
 import { spawn } from 'node:child_process'
+import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
+import { dirname, resolve, join } from 'node:path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(__dirname, '..')
+
+// Optional config file (same one the distribution scripts read) for non-env defaults.
+let fileCfg = {}
+try {
+  const p = process.env.FACTORY_CONFIG || join(__dirname, 'factory.config.json')
+  if (fs.existsSync(p)) fileCfg = JSON.parse(fs.readFileSync(p, 'utf8'))
+} catch { /* a malformed config shouldn't block tests; env still works */ }
+const cfg = (envKey, fileKey, fallback) => process.env[envKey] ?? fileCfg[fileKey] ?? fallback
+
 const WALL = Number(process.env.SAFE_JEST_WALL || 300)
 const COMMON = ['--forceExit', '--runInBand', '--ci', '--testTimeout=20000']
 const isWin = process.platform === 'win32'
 
 let args = process.argv.slice(2)
+
+if (args[0] === '--help' || args[0] === '-h') {
+  process.stdout.write(`safe-jest — hang-proof jest runner (kills the tree on a wall-clock timeout).
+
+Usage:
+  node scripts/safe-jest.mjs <path-or-pattern...>   run jest at the repo root
+  node scripts/safe-jest.mjs --worker [args...]      run jest in the configured second root
+  node scripts/safe-jest.mjs --help                  show this help
+
+Env / factory.config.json:
+  SAFE_JEST_WALL=<seconds>          wall-clock timeout (default 300)
+  SAFE_JEST_WORKER_DIR=<path>       second test root for --worker (default workers/ai-mcp) [safeJestWorkerDir]
+  SAFE_JEST_WORKER_CONFIG=<file>    jest config in that dir ("" for default) [safeJestWorkerConfig]
+
+Exit 124 = a HANG (re-scope/investigate), NOT a test failure.
+`)
+  process.exit(0)
+}
+
 let cwd = ROOT
 let jestArgs
 
 if (args[0] === '--worker') {
   args = args.slice(1)
-  cwd = resolve(ROOT, 'workers/ai-mcp')
-  jestArgs = ['jest', '--config', 'jest.config.cjs', ...COMMON, ...args]
+  const workerDir = cfg('SAFE_JEST_WORKER_DIR', 'safeJestWorkerDir', 'workers/ai-mcp')
+  const workerCfg = cfg('SAFE_JEST_WORKER_CONFIG', 'safeJestWorkerConfig', 'jest.config.cjs')
+  cwd = resolve(ROOT, workerDir)
+  if (!fs.existsSync(cwd)) {
+    process.stderr.write(
+      `safe-jest: --worker dir "${workerDir}" not found under ${ROOT}.\n` +
+      `This mode is product-specific. Set SAFE_JEST_WORKER_DIR (or "safeJestWorkerDir" in\n` +
+      `factory.config.json) to your second test root, or drop --worker if you have only one.\n`,
+    )
+    process.exit(2)
+  }
+  jestArgs = ['jest', ...(workerCfg ? ['--config', workerCfg] : []), ...COMMON, ...args]
 } else {
   jestArgs = ['jest', ...COMMON, ...args]
 }

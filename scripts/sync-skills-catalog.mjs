@@ -20,7 +20,22 @@ const run = (cmd, args) => execFileSync(cmd, args, { stdio: 'inherit', shell: WI
 const out = (cmd, args) => execFileSync(cmd, args, { encoding: 'utf8', shell: WIN }).trim()
 const ok = (cmd, args) => { try { execFileSync(cmd, args, { stdio: 'ignore', shell: WIN }); return true } catch { return false } }
 
-const DRY = process.argv.slice(2).includes('--dry-run')
+const ARGS = process.argv.slice(2)
+// Help MUST be handled before resolving org/catalogRepo (those throw when unset).
+if (ARGS.includes('--help') || ARGS.includes('-h')) {
+  process.stdout.write(`sync-skills-catalog — mirror ALL skills + a generated catalog README to the public catalog repo.
+
+Usage:
+  node scripts/sync-skills-catalog.mjs [--dry-run]   (or: npm run sync:catalog)
+
+  --dry-run   print how many skills would sync and exit (no clone, no push)
+  --help      show this help
+
+Requires config (org + catalogRepo) + auth: CATALOG_SYNC_TOKEN/SKILL_SYNC_TOKEN, or gh authed.
+`)
+  process.exit(0)
+}
+const DRY = ARGS.includes('--dry-run')
 // PUSH script: org + catalog repo are genuinely required for a real run, but a dry-run
 // preview tolerates them being unset (shows a placeholder) so you can preview pre-config.
 let ORG, CATALOG_REPO

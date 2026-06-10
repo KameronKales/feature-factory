@@ -1,0 +1,41 @@
+{
+  "_comment": "SAMPLE output of `Workflow({ name: 'research-gaps', args })` for the LogScope log-analytics example (docs/examples/log-analytics/). Illustrative, hand-written — shows the exact shape the build step consumes so you can calibrate what 'good' looks like before a real run. Each gap object is passed verbatim as build-gap's args.",
+  "gaps": [
+    {
+      "slug": "saved-query-alerts",
+      "name": "Threshold alerts on saved queries",
+      "description": "Engineers re-run the same diagnostic query by hand; there is no way to be notified when a saved query crosses a threshold. No alert evaluator, no notification dispatch, no fire history.",
+      "audience": "On-call engineers monitoring recurring signals",
+      "evidence": "grep 'alert' across packages/query + packages/api returns only ad-hoc log lines; no AlertRule type; packages/api has no /alerts route; NotificationChannel exists but is only wired to the digest job.",
+      "recommended_tool": "alerts",
+      "distribution": "fold-in",
+      "skill_route": "logscope alert (existing command group)",
+      "scope": "lean",
+      "priority": 1
+    },
+    {
+      "slug": "query-cost-estimator",
+      "name": "Pre-run query cost / scan estimate",
+      "description": "Users fire expensive wildcard queries blind; there is no estimate of bytes scanned or retention-window cost before running, leading to surprise bills and slow dashboards.",
+      "audience": "Anyone composing a query in the dashboard or CLI",
+      "evidence": "QueryPlan computes a scan range internally (packages/query/src/plan.ts) but never surfaces an estimate; no /estimate route; web query editor has no cost hint; grep 'estimat' = 0 hits in apps/web.",
+      "recommended_tool": "estimate_query_cost",
+      "distribution": "fold-in",
+      "skill_route": "packages/query + the query editor panel",
+      "scope": "full",
+      "priority": 2
+    },
+    {
+      "slug": "rbac-query-scoping",
+      "name": "Per-team query scoping (access control)",
+      "description": "All authenticated users can query all indices; there is no per-team scoping, so retention/ACL is enforced only at ingest, not at query time. A read path that bypasses team boundaries is a data-exposure risk.",
+      "audience": "Admins of multi-team workspaces",
+      "evidence": "QueryPlan.evaluate takes no principal/scope arg (packages/query/src/plan.ts); packages/api auth middleware sets req.user but it is never threaded into the query; no scope tests in __tests__.",
+      "recommended_tool": "scoped_query",
+      "distribution": "new-skill",
+      "skill_route": "logscope-access (new top-level command group)",
+      "scope": "full",
+      "priority": 3
+    }
+  ]
+}

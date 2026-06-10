@@ -22,6 +22,21 @@ Two saved **workflows** do the heavy lifting (each fans out parallel AI subagent
 **Node helper scripts** provide hang-proof tests + keep-awake + the mechanical git/test plumbing
 (the watchdog/backoff/recovery are main-loop *behaviors*, not scripts — see "What makes it run unattended").
 
+> **New to this?** Start with [`QUICKSTART.md`](QUICKSTART.md) — it gets you to a real research-only
+> run in ~10 minutes and defines the runtime before the architecture below.
+
+## The runtime — what actually runs this
+
+The factory runs **inside [Claude Code](https://docs.claude.com/en/docs/claude-code)**; there's no
+separate server or daemon. Two actors:
+- **The main loop** = Claude Code itself, following `skills/feature-factory/SKILL.md` when you say
+  *"run the feature factory."*
+- **Workflows** = the `.js` files in `.claude/workflows/`. Each is a deterministic script that fans
+  out parallel AI subagents and returns structured data. The assistant runs one via the **`Workflow`
+  tool** — `Workflow({ name: 'research-gaps', args })` resolves to `.claude/workflows/research-gaps.js`
+  by its `meta.name` (Claude Code auto-discovers them). So every `Workflow({…})` in these docs is *the
+  assistant calling a tool for you* — you trigger the run in plain language, not from a shell.
+
 ---
 
 ## Components
@@ -44,6 +59,8 @@ Two saved **workflows** do the heavy lifting (each fans out parallel AI subagent
   Worked example (a personal-finance product): pass `domains: ['accumulation & FIRE', 'taxes',
   'decumulation', 'real estate', 'debt & cashflow', 'equity comp', 'protection/estate', 'guaranteed
   income', 'fixed income', 'relocation', ...]` and `surface: 'its MCP tool registry + engine modules'`.
+  See [`docs/examples/sample-research-gaps-output.json`](examples/sample-research-gaps-output.json) for a
+  realistic populated result — the exact shape `build-gap` consumes.
 - **`build-gap.js`** — a **customize-per-project template** (worked example: a finance web-app + MCP
   product). Unlike research-gaps it intentionally encodes a concrete architecture — a four-layer
   `engine|mcp|web|skill` model with specific paths and a product-shaped Definition of Done. Keep the

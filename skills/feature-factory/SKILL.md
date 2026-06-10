@@ -21,7 +21,8 @@ it each time — invoke this skill.
 - **how many** gaps to build this run (default: all that research surfaces, highest-value first)
 - **focus** area for research (default: the whole product surface)
 - **exclude** already-built/in-flight slugs
-- **updates channel** (a chat webhook) for progress — read it from your memory/config, never hardcode
+- **updates channel** (a chat webhook) for progress — read it from `updatesChannel` in
+  `scripts/factory.config.json` (or the `FACTORY_UPDATES_CHANNEL` env var) or your memory; never hardcode
 
 ## Step 0 — Arm resilience (once per run)
 1. **Keep-awake:** start `node scripts/keep-awake.mjs 43200` in the background so the machine
@@ -30,11 +31,14 @@ it each time — invoke this skill.
 2. **Hang-proof tests:** ensure `scripts/safe-jest.mjs` exists and that every workflow runs tests
    through it (hard wall-clock timeout + `--forceExit --runInBand`) — **never bare `npx jest`**,
    which can hang and silently block the whole run.
-3. **Watchdog:** schedule a recurring check (~every 20 min, off the :00/:30 marks). Each fire,
+3. **Watchdog:** schedule a recurring check (~every 20 min, off the :00/:30 marks) — concretely, use
+   your scheduler (`/schedule` or a cron routine) to re-enter this skill, e.g. a cron like `*/20 * * * *`
+   firing "continue the feature-factory run: check the in-flight build, advance the queue". Each fire,
    idempotently: if a build has run too long → suspect a test hang, stop it, **verify the code
    yourself with safe-jest**, and continue; advance the queue; on token rate-limits **back off** and
    retry next cycle (never hammer); flag any blocked prod step and move on; when done, clean up
-   (delete the watchdog, stop keep-awake).
+   (delete the watchdog, stop keep-awake). There is intentionally **no `watchdog.mjs`** — it needs the
+   assistant's scheduler + judgment, so it lives here, not in `scripts/`.
 
 ## Step 1 — Research the gaps (structured)
 Run `Workflow({ name: 'research-gaps', args: { exclude, focus } })`. It returns a build-ready list:

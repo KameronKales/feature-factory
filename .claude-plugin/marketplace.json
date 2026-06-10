@@ -1,4 +1,12 @@
 {
   "name": "feature-factory",
-  "plugins": []
+  "plugins": [
+    {
+      "name": "feature-factory",
+      "source": "./skills/feature-factory",
+      "description": "Autonomously research a product's highest-value gaps and ship each end-to-end (engine → tests → UI → API/MCP → distribution) to a fixed Definition of Done, with the resilience to run unattended.",
+      "version": "1.0.0",
+      "license": "MIT"
+    }
+  ]
 }

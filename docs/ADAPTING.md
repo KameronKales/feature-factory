@@ -119,14 +119,23 @@ example's `engine`), then the layers that depend on it in parallel (`api ∥ web
 
 ---
 
-## What you should NOT change
+## What you configure vs. what you leave alone
 
-- **The resilience scripts** (`safe-jest.mjs`, `keep-awake.mjs`) — domain-neutral, cross-platform.
+**Leave alone (domain-neutral):**
+- **The resilience scripts' machinery** — `safe-jest.mjs` (the hang-proof kill-the-tree logic) and
+  `keep-awake.mjs` work on every OS and product. You don't edit their code.
 - **`skills/feature-factory/SKILL.md`** — the orchestration loop (arm → research → build each gap →
   verify locally → ship → tear down) is the same for every product.
 - **The `research-gaps` output schema** and the **Investigate→Synthesize→Implement→Verify** spine.
 - **The "main loop verifies locally before shipping" rule.** This is the one guardrail that keeps an
   unattended run honest in any domain.
+
+**Configure (don't edit code — set env / `factory.config.json`):**
+- **`safe-jest`'s `--worker` second test root.** The default (`workers/ai-mcp` + `jest.config.cjs`)
+  is the finance example's monorepo layout. If your product has a second test root, point it there
+  with `SAFE_JEST_WORKER_DIR` / `SAFE_JEST_WORKER_CONFIG` (or `safeJestWorkerDir` /
+  `safeJestWorkerConfig` in `factory.config.json`). If you have a single test root, just don't use
+  `--worker` — pass paths directly. (Run `node scripts/safe-jest.mjs --help` for the knobs.)
 
 ## Checklist
 

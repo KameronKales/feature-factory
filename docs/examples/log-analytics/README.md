@@ -25,6 +25,10 @@ layer names, paths, exemplars, and verify checks differ.
 | [`build-gap.js`](build-gap.js) | `.claude/workflows/build-gap.js` — the build workflow |
 | [`specs/saved-query-alerts.md`](specs/saved-query-alerts.md) | `docs/specs/EXAMPLE.md` — a filled spec |
 
+A realistic **`research-gaps` output** for this product (the ranked list that would feed `build-gap`,
+including the Saved Query Alerts gap below) lives at
+[`../sample-research-gaps-output.json`](../sample-research-gaps-output.json).
+
 ## How you'd actually use it
 
 These files are reference material, not wired into the live factory. To run the factory *as* LogScope

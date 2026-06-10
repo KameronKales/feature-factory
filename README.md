@@ -7,22 +7,46 @@ Done — designed to run unattended and recover from the usual things that derai
 **100% Node.js.** Runs identically on Windows, macOS, and Linux. The only external CLIs are `node`,
 `npm`, `git`, and `gh` (for publishing) — all install natively on every OS.
 
-**New here?** Read in this order: [`docs/FEATURE_FACTORY.md`](docs/FEATURE_FACTORY.md) (how it works) →
-[`docs/ADAPTING.md`](docs/ADAPTING.md) (point it at *your* product, with a non-finance worked example) →
-[`docs/FEATURE_PLAYBOOK.md`](docs/FEATURE_PLAYBOOK.md) (the Definition of Done).
+**New here?** Start with [`docs/QUICKSTART.md`](docs/QUICKSTART.md) (clone → verify → a real
+research-only first run in ~10 min), then read in order: [`docs/FEATURE_FACTORY.md`](docs/FEATURE_FACTORY.md)
+(how it works) → [`docs/ADAPTING.md`](docs/ADAPTING.md) (point it at *your* product, with a
+[worked non-finance example](docs/examples/log-analytics/)) → [`docs/FEATURE_PLAYBOOK.md`](docs/FEATURE_PLAYBOOK.md)
+(the Definition of Done). When a run misbehaves: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
+Want to contribute to the harness itself? [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ---
 
 ## Setup (any project)
 
-1. **Copy these files into your repo** (or use this as a starting point):
+> Easiest path: **clone this repo as your starting point** rather than copying files piecemeal — then
+> the test/CI gate and `npm run` commands work out of the box. If you're folding it into an existing
+> repo, copy the full set below.
+
+1. **Copy these files into your repo:**
    - `scripts/*.mjs` — the reusable harness + distribution scripts
    - `scripts/catalog-readme.template.md` — your catalog page (edit the prose)
    - `.claude/workflows/*.js` — the research + build workflows (customize for your domain)
-   - `docs/FEATURE_PLAYBOOK.md` — your Definition of Done (customize)
+   - `docs/FEATURE_PLAYBOOK.md` (+ the rest of `docs/`) — your Definition of Done (customize)
    - `skills/feature-factory/` — the orchestration the assistant follows
+   - `.claude-plugin/marketplace.json` — the skill registry (so `/plugin install` works)
+   - `templates/skill/` — the template `new-skill.mjs` scaffolds from
+   - `package.json` — what the `npm run check` / `npm test` / `npm run new:skill` commands resolve to
+   - `.github/workflows/ci.yml` — the pre-ship gate (parse-check + tests on every push/PR)
+   - `LICENSE` — MIT
 
-2. **Configure** — copy the example and fill in YOUR values:
+2. **Make the `feature-factory` skill discoverable.** Claude Code loads skills from
+   `~/.claude/skills/` (every project) or `.claude/skills/` (this project). If you cloned the repo you
+   can also install via the marketplace: `/plugin marketplace add <path-or-repo>` then
+   `/plugin install feature-factory`. **Restart Claude Code (or start a new session)** so the skill
+   loads by its description.
+
+3. **Verify the harness is healthy:**
+   ```
+   npm run check    # parse-checks every helper script
+   npm test         # runs the harness test suite
+   ```
+
+4. **Configure** (only needed to *publish* skills) — copy the example and fill in YOUR values:
    ```
    cp scripts/factory.config.example.json scripts/factory.config.json
    ```
@@ -30,18 +54,23 @@ Done — designed to run unattended and recover from the usual things that derai
    **refuse to run** until you set `org` + `catalogRepo` — so a clone can never accidentally push to
    someone else's repos. (You can also set everything via `FACTORY_*` env vars instead of the file.)
 
-3. **Run** — in Claude Code, say *"run the feature factory"* (or invoke the `feature-factory` skill).
+5. **Run** — in Claude Code, say *"run the feature factory"* (or invoke the `feature-factory` skill).
+   See [`docs/QUICKSTART.md`](docs/QUICKSTART.md) for a guided, build-nothing first run.
 
 ## The scripts
 
-| Script | What it does |
-|--------|--------------|
+Run any of them with `--help` for usage. The `bin`/`npm run` aliases are in parentheses.
+
+| Script (alias) | What it does |
+|----------------|--------------|
 | `scripts/safe-jest.mjs` | Hang-proof test runner (hard timeout kills the process tree). Use instead of bare `npx jest`. |
 | `scripts/keep-awake.mjs` | OS-independent keep-awake for long runs (caffeinate / Windows / systemd / heartbeat). |
-| `scripts/new-skill.mjs` | Scaffold a new skill + register it in the marketplace + optional publish. |
-| `scripts/sync-skill.mjs` | Mirror one skill to its public repo. |
-| `scripts/sync-skills-catalog.mjs` | Mirror all skills + a generated catalog README to the catalog repo. |
+| `scripts/new-skill.mjs` (`npm run new:skill`, bin `factory-new-skill`) | Scaffold a new skill + register it in the marketplace + optional publish. |
+| `scripts/sync-skill.mjs` (`npm run sync:skill`, bin `factory-sync-skill`) | Mirror one skill to its public repo. |
+| `scripts/sync-skills-catalog.mjs` (`npm run sync:catalog`, bin `factory-sync-catalog`) | Mirror all skills + a generated catalog README to the catalog repo. |
 | `scripts/factory.config.mjs` | Reads `factory.config.json` / env; the single source of project identity. |
+
+Repo health checks: `npm run check` (parse-check every script) and `npm test` (the harness test suite).
 
 ## Configuration keys
 
@@ -54,6 +83,9 @@ Done — designed to run unattended and recover from the usual things that derai
 | `productName` | `FACTORY_PRODUCT_NAME` | no | Display name in generated READMEs |
 | `mcpUrl` | `FACTORY_MCP_URL` | no | Your public MCP server URL |
 | `gitName` / `gitEmail` | `SYNC_GIT_NAME` / `SYNC_GIT_EMAIL` | no | Commit identity for sync pushes |
+| `updatesChannel` | `FACTORY_UPDATES_CHANNEL` | no | Chat webhook the run posts progress to (the assistant reads it; never hardcode it) |
+| `safeJestWorkerDir` | `SAFE_JEST_WORKER_DIR` | no (default `workers/ai-mcp`) | Second test root for `safe-jest --worker` — point at your own monorepo path |
+| `safeJestWorkerConfig` | `SAFE_JEST_WORKER_CONFIG` | no (default `jest.config.cjs`) | Jest config inside that dir (`""` = jest's default) |
 | `legacyRepos` | `FACTORY_LEGACY_REPOS` | no | Map of skills whose repo name differs from the convention |
 
 `scripts/factory.config.json` is **gitignored** — your project identity never travels with a clone.

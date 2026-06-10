@@ -21,8 +21,22 @@ import { ROOT, getOrg, SKILL_REPO_PREFIX, AUTHOR, defaultDesc } from './factory.
 
 function die(msg, code = 1) { console.error(msg); process.exit(code) }
 
+const USAGE = `new-skill — scaffold a skill from templates/skill, register it in the marketplace, optionally publish.
+
+Usage:
+  node scripts/new-skill.mjs <name> [--publish] [--desc "..."] [--tools "a,b,c"] [--dry-run]
+
+  <name>      lowercase kebab-case (^[a-z][a-z0-9-]+$)
+  --desc      one-line description (frontmatter + plugin + marketplace + README)
+  --tools     comma-separated tool list rendered into SKILL.md's {{TOOLS}}
+  --publish   gh repo create <org>/<prefix><name> --public, then sync (needs gh + config)
+  --dry-run   print what would happen; write nothing, create no repo, push nothing
+  --help      show this help
+`
+
 // --- parse args ---
 const argv = process.argv.slice(2)
+if (argv.includes('--help') || argv.includes('-h')) { process.stdout.write(USAGE); process.exit(0) }
 const NAME = argv[0] && !argv[0].startsWith('--') ? argv[0] : ''
 let PUBLISH = false, DESC = '', TOOLS = '', DRY = false
 for (let i = NAME ? 1 : 0; i < argv.length; i++) {
@@ -82,9 +96,12 @@ if (DRY) {
   console.log(`[dry-run] would ensure '${NAME}' is registered in .claude-plugin/marketplace.json`)
 } else {
   // Seed the manifest if a fresh clone doesn't have one yet (avoids a raw ENOENT).
+  // Name matches the marketplace this repo ships (.claude-plugin/marketplace.json) so a
+  // regenerate can't silently diverge from the committed file; override via FACTORY_MARKETPLACE_NAME.
   if (!fs.existsSync(MARKET)) {
     fs.mkdirSync(join(ROOT, '.claude-plugin'), { recursive: true })
-    fs.writeFileSync(MARKET, JSON.stringify({ name: 'skills', plugins: [] }, null, 2) + '\n')
+    const marketName = process.env.FACTORY_MARKETPLACE_NAME || 'feature-factory'
+    fs.writeFileSync(MARKET, JSON.stringify({ name: marketName, plugins: [] }, null, 2) + '\n')
   }
   // Idempotently ensure a marketplace plugins[] entry (append only if absent).
   const market = JSON.parse(fs.readFileSync(MARKET, 'utf8'))

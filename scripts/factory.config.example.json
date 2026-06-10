@@ -10,5 +10,8 @@
   "gitEmail": "noreply@example.com",
   "authorName": "your-org",
   "authorUrl": "https://github.com/your-github-org-or-user",
+  "updatesChannel": "",
+  "safeJestWorkerDir": "workers/ai-mcp",
+  "safeJestWorkerConfig": "jest.config.cjs",
   "legacyRepos": {}
 }

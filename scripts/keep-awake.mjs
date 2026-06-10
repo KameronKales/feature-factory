@@ -12,7 +12,24 @@
 
 import { spawn } from 'node:child_process'
 
+if (['--help', '-h'].includes(process.argv[2])) {
+  process.stdout.write(`keep-awake — stop the machine sleeping during a long unattended run.
+
+Usage:
+  node scripts/keep-awake.mjs [seconds]   (default 43200 = 12h; run in the background)
+
+Uses caffeinate (macOS) / SetThreadExecutionState (Windows) / systemd-inhibit (Linux).
+If no native inhibitor is found it falls back to a passive heartbeat that keeps the API
+uniform but does NOT force-prevent sleep — adjust your OS power settings in that case.
+`)
+  process.exit(0)
+}
+
 const seconds = Number(process.argv[2] || 43200)
+if (!Number.isFinite(seconds) || seconds <= 0) {
+  console.error(`keep-awake: invalid duration "${process.argv[2]}" — pass a positive number of seconds (or --help).`)
+  process.exit(2)
+}
 const platform = process.platform
 
 function run(cmd, args) {
