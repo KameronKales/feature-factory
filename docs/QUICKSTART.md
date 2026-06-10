@@ -1,5 +1,7 @@
 # Quickstart — your first run in ~10 minutes
 
+<sub>[← Docs index](README.md) · next: [How it works](FEATURE_FACTORY.md) · [Glossary](GLOSSARY.md)</sub>
+
 This gets you from a fresh clone to a **real (research-only) run** that builds nothing — the safest
 way to see the factory work before you let it write code. If you've never seen this pattern, read the
 ["What is a Workflow?"](#what-is-a-workflow) section first.
@@ -75,6 +77,10 @@ those args in your message.)
 Review the list. This is your chance to calibrate before any code is written.
 
 ## 5. Build a gap (when you're ready)
+
+> **Before a code-writing run, read [`SAFETY.md`](SAFETY.md).** A build run commits, pushes, and can
+> deploy *without asking* — bound the blast radius (run on a branch, cap to one gap, review the diff
+> before merge) and know the cost first.
 
 Pick one gap and tell the assistant to build it. For a **non-finance product, first adapt the build
 workflow** — see [`ADAPTING.md`](ADAPTING.md), because the shipped `build-gap.js` is a finance

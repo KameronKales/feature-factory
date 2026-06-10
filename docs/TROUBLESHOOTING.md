@@ -1,8 +1,12 @@
 # Troubleshooting & failure recovery
 
+<sub>[← Docs index](README.md) · [Safety & cost](SAFETY.md) · [Glossary](GLOSSARY.md)</sub>
+
 The factory is built to run unattended, so most failures are designed to be *recoverable* rather than
-fatal. This is the symptom → cause → fix reference. If something here is wrong or missing, it's worth
-fixing — an unattended run is only as good as its failure modes.
+fatal. This is the symptom → cause → fix reference for **mechanical** failures (hangs, sleep, rate limits,
+config). For the *other* category — code that's green but **semantically wrong** — and for cost / how
+to stop or bound a run, see [`SAFETY.md`](SAFETY.md). An unattended run is only as good as its failure
+modes.
 
 ## Quick reference
 

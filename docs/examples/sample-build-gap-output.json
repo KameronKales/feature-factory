@@ -1,0 +1,44 @@
+{
+  "_comment": "SAMPLE return value of `Workflow({ name: 'build-gap', args })` for the saved-query-alerts gap from sample-research-gaps-output.json (LogScope log-analytics example). Illustrative, hand-written. This is what the main loop reads back BEFORE running the pre-ship verify gate itself — the `verdicts` here are advisory (subagent opinions), NOT proof the gap is shippable.",
+  "slug": "saved-query-alerts",
+  "tool": "alerts",
+  "distribution": "fold-in",
+  "skill_route": "logscope alert (existing command group)",
+  "files": [
+    "packages/query/src/alerts.ts",
+    "packages/query/src/__tests__/alerts.test.ts",
+    "packages/api/src/routes/alerts.ts",
+    "packages/api/src/openapi.ts",
+    "packages/api/test/alerts.contract.test.ts",
+    "packages/api/test/surface-parity.test.ts",
+    "apps/web/src/views/SavedQuery/AlertsTab.tsx",
+    "apps/web/e2e/alerts.spec.ts",
+    "packages/cli/src/commands/alert.ts",
+    "packages/cli/test/alert.int.test.ts",
+    "docs/cli-reference.md"
+  ],
+  "reports": [
+    "core(query): added alerts.ts (AlertRule eval over a saved-query result; reuses operator table + TimeRange; reads go through QueryPlan so retention+ACL hold; dispatch via NotificationChannel). 11 golden fixtures incl. empty-result + retention-boundary. coverage 96% branch / 100% func.",
+    "api: POST /alerts + GET /alerts/:id/history; OpenAPI updated; new error code alert_rule_invalid; contract + surface-parity tests added.",
+    "web: AlertsTab on the saved-query view (shown only when a query is saved); fire-history panel; nav + docs entry; renders empty without throwing; e2e smoke green.",
+    "cli: logscope alert add|list|history under the existing group; --help + completion + cli-reference.md updated; integration test drives a fake API."
+  ],
+  "verdicts": [
+    {
+      "pass": true,
+      "summary": "scoped query suite + api contract + cli integration + build + lint all green",
+      "issues": []
+    },
+    {
+      "pass": false,
+      "summary": "DoD mostly met; one advisory gap",
+      "issues": [
+        {
+          "severity": "minor",
+          "detail": "history endpoint returns last 50 fires but the spec didn't pin a limit; confirm 50 is intended or make it a query param.",
+          "file": "packages/api/src/routes/alerts.ts"
+        }
+      ]
+    }
+  ]
+}

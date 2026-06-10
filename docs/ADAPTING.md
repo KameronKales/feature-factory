@@ -1,8 +1,11 @@
 # Adapting the Feature Factory to your product
 
+<sub>[← Docs index](README.md) · prev: [How it works](FEATURE_FACTORY.md) · next: [Playbook](FEATURE_PLAYBOOK.md) · [Glossary](GLOSSARY.md)</sub>
+
 The factory ships with **one worked example baked into the docs and the build workflow: a
-personal-finance web-app + MCP product** (FIRE %, tax modules, backtesting, an `analyze_*` MCP tool
-per feature). That example is there to make the pattern concrete — **it is not a requirement.** This
+personal-finance web-app + MCP ([Model Context Protocol](https://modelcontextprotocol.io)) product**
+(FIRE %, tax modules, backtesting, an `analyze_*` MCP tool per feature). That example is there to make
+the pattern concrete — **it is not a requirement** (your product may not use MCP at all). This
 guide shows you exactly which parts are generic, which parts are the example, and how to retarget the
 factory at a completely different product.
 
@@ -52,6 +55,10 @@ Definition of Done with a non-negotiable local verify gate) and **replace the la
 - **There is a Definition of Done, written down once**, so success isn't re-invented per feature.
 - **The main loop re-runs the full verify gate locally before anything ships** — subagent verdicts
   are advisory only, and partial work is never marked done.
+
+Don't start from the dense finance document — start from the blank form:
+[`docs/FEATURE_PLAYBOOK.generic.md`](FEATURE_PLAYBOOK.generic.md) is a `{{PLACEHOLDER}}` skeleton of the
+same DoD. `cp docs/FEATURE_PLAYBOOK.generic.md docs/FEATURE_PLAYBOOK.md` and fill it in.
 
 ### Step 3 — Map your layers in `build-gap.js`
 
@@ -140,7 +147,10 @@ example's `engine`), then the layers that depend on it in parallel (`api ∥ web
 ## Checklist
 
 - [ ] `scripts/factory.config.json` filled in (`org` + `catalogRepo` at minimum — see the README).
-- [ ] `FEATURE_PLAYBOOK.md` layers rewritten for your stack; the verify gate kept intact.
-- [ ] `build-gap.js` group keys, file paths, exemplar references, and verify checks updated.
+- [ ] `FEATURE_PLAYBOOK.md` written from [`FEATURE_PLAYBOOK.generic.md`](FEATURE_PLAYBOOK.generic.md);
+      the verify gate kept intact.
+- [ ] `build-gap.js` group keys, file paths, exemplar references, and verify checks updated (start from
+      [`build-gap.generic.js`](build-gap.generic.js) if your shape differs from the finance one).
+- [ ] `node scripts/validate-build-gap.mjs` run — no unreplaced placeholders, layers consistent.
 - [ ] A first spec written from the playbook template (see [`docs/specs/EXAMPLE.md`](specs/EXAMPLE.md)).
 - [ ] `research-gaps` run once against your repo to confirm the gap list looks sane before building.

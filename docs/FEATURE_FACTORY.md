@@ -1,8 +1,12 @@
 # The Feature Factory — how it works
 
+<sub>[← Docs index](README.md) · prev: [Quickstart](QUICKSTART.md) · next: [Adapting](ADAPTING.md) · [Glossary](GLOSSARY.md)</sub>
+
 A hands-off loop that **discovers the highest-value gaps in the product, then builds and ships each
 one** end-to-end — engine, tests, UI, API/MCP, and distribution — to a fixed Definition of Done. It's
 designed to run unattended (e.g. overnight) and recover from the usual things that derail long runs.
+(MCP = [Model Context Protocol](https://modelcontextprotocol.io). Unfamiliar with a term used here?
+The [glossary](GLOSSARY.md) defines *gap*, *main loop*, *workflow*, *self-orchestrating*, and more.)
 
 It's **100% Node.js** — no bash, no OS-specific tools. Clone it and run it on **Windows, macOS, or
 Linux** with the same commands. The only external CLIs are `node`, `npm`, `git`, and `gh` (for
@@ -21,6 +25,9 @@ Two saved **workflows** do the heavy lifting (each fans out parallel AI subagent
 (the assistant) orchestrates them, verifies the result on the local machine, and ships. A small set of
 **Node helper scripts** provide hang-proof tests + keep-awake + the mechanical git/test plumbing
 (the watchdog/backoff/recovery are main-loop *behaviors*, not scripts — see "What makes it run unattended").
+
+> Want to see it play out concretely? [`examples/run-trace.md`](examples/run-trace.md) narrates one
+> full run — trigger → ranked queue → one gap built → the local verify gate → ship summary.
 
 > **New to this?** Start with [`QUICKSTART.md`](QUICKSTART.md) — it gets you to a real research-only
 > run in ~10 minutes and defines the runtime before the architecture below.
@@ -67,6 +74,28 @@ separate server or daemon. Two actors:
   spine (**Investigate** → **Synthesize** → **Implement** → **Verify**, all tests via `safe-jest`) and
   **replace the layer keys / file groups / exemplar components / DoD checks with your own** (and point
   `docs/FEATURE_PLAYBOOK.md` at your DoD). This is the one file you adapt to your stack.
+
+  **What every gap ships (the four layers)** — built in dependency order, each owning disjoint files
+  so the middle two run in parallel:
+
+  ```
+                        ┌──────────────────────────────┐
+                        │  engine  (pure, typed core)   │   ← built first; everyone depends on it
+                        │  reference-validated + tests  │
+                        └───────────────┬──────────────┘
+                            ┌───────────┴───────────┐        ← run in parallel (disjoint files)
+                            ▼                       ▼
+                   ┌─────────────────┐     ┌─────────────────┐
+                   │  api / mcp tool │     │  web / UI        │
+                   │  + contract test│     │  wired into app  │
+                   └────────┬────────┘     └────────┬────────┘
+                            └───────────┬───────────┘
+                                        ▼
+                            ┌──────────────────────────┐
+                            │  distribution (skill/CLI) │   ← last; needs the capability registered
+                            └──────────────────────────┘
+       finance example keys: engine│mcp│web│skill   ·   log-analytics: query│api│web│cli
+  ```
 
 ### 2. The Definition of Done (`docs/FEATURE_PLAYBOOK.md`)
 The single source of truth for "what done looks like," so success isn't re-invented per feature. Every
@@ -120,6 +149,22 @@ What happens:
 ---
 
 ## What makes it run unattended
+
+```
+   arm ──────────────► research ──► build gap #1 ──► verify locally ──► ship ──┐
+   │  keep-awake (bg)              run build-gap      MAIN LOOP re-runs        │
+   │  safe-jest wired                                 suites+build+lint        │
+   │  watchdog scheduled                              (subagent verdicts       │
+   │                                                   are advisory only)      │
+   │                                                                           ▼
+   │   ┌─────────────────────────────────────────────┐                  next gap … 
+   └──►│ watchdog fires every ~20 min:                │◄───────────────────┘
+       │  • build stalled?  → stop, self-verify, go   │     (queue empty / budget spent)
+       │  • rate-limited?   → BACK OFF, retry next     │                  │
+       │  • blocked prod?   → flag + move on           │                  ▼
+       └─────────────────────────────────────────────┘          finish: summary +
+                                                                 tear down resilience
+```
 
 Two kinds of resilience — **don't confuse them**:
 

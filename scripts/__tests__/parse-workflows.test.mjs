@@ -18,6 +18,7 @@ const FILES = [
   '.claude/workflows/build-gap.js',
   'docs/build-gap.generic.js',
   'docs/examples/log-analytics/build-gap.js',
+  'docs/examples/npm-library/build-gap.js',
 ]
 
 for (const rel of FILES) {

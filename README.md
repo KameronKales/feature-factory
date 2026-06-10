@@ -4,6 +4,9 @@ A hands-off, **project-agnostic** loop that discovers the highest-value gaps in 
 and ships each one end-to-end (engine → tests → UI → API/MCP → distribution) to a fixed Definition of
 Done — designed to run unattended and recover from the usual things that derail long runs.
 
+(MCP = [Model Context Protocol](https://modelcontextprotocol.io); new to the terms here? see the
+[glossary](docs/GLOSSARY.md).)
+
 **100% Node.js.** Runs identically on Windows, macOS, and Linux. The only external CLIs are `node`,
 `npm`, `git`, and `gh` (for publishing) — all install natively on every OS.
 
@@ -11,8 +14,10 @@ Done — designed to run unattended and recover from the usual things that derai
 research-only first run in ~10 min), then read in order: [`docs/FEATURE_FACTORY.md`](docs/FEATURE_FACTORY.md)
 (how it works) → [`docs/ADAPTING.md`](docs/ADAPTING.md) (point it at *your* product, with a
 [worked non-finance example](docs/examples/log-analytics/)) → [`docs/FEATURE_PLAYBOOK.md`](docs/FEATURE_PLAYBOOK.md)
-(the Definition of Done). When a run misbehaves: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
-Want to contribute to the harness itself? [`CONTRIBUTING.md`](CONTRIBUTING.md).
+(the Definition of Done). Before a real (code-writing) run: [`docs/SAFETY.md`](docs/SAFETY.md) (cost, what runs unsupervised, how
+to bound/stop it, and what the AI can get wrong). When a run misbehaves:
+[`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md). Want to contribute to the harness itself?
+[`CONTRIBUTING.md`](CONTRIBUTING.md). New to the terminology? [`docs/GLOSSARY.md`](docs/GLOSSARY.md).
 
 ---
 
