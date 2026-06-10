@@ -10,6 +10,22 @@ Done — designed to run unattended and recover from the usual things that derai
 **100% Node.js.** Runs identically on Windows, macOS, and Linux. The only external CLIs are `node`,
 `npm`, `git`, and `gh` (for publishing) — all install natively on every OS.
 
+## Why this exists
+
+Every product has a pile of useful features that never get built. The work isn't hard, it's just
+repetitive: figure out what's missing, build it, test it, hook up the UI and API, document it, ship it.
+Doing that by hand is slow, so the pile grows. Handing it to an AI one prompt at a time doesn't help
+much — you end up babysitting it.
+
+Feature Factory runs the whole cycle and checks its own work. Point it at a repo and it finds the gaps
+worth building by reading your actual code, then builds each one to the same finish line: engine,
+tests, UI, API, distribution. Before it ships anything it reruns the tests and build itself — a passing
+report from a sub-agent doesn't count.
+
+It's built to run unattended without going sideways: a stuck test can't hang the run, it backs off when
+it hits rate limits, and it works on a branch so you see the diff before it merges. And it won't claim
+its code is right just because the tests pass — it tells you what it's unsure about.
+
 ## How it works (at a glance)
 
 ```
