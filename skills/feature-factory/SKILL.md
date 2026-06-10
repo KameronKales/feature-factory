@@ -23,6 +23,11 @@ it each time — invoke this skill.
 - **exclude** already-built/in-flight slugs
 - **updates channel** (a chat webhook) for progress — read it from `updatesChannel` in
   `scripts/factory.config.json` (or the `FACTORY_UPDATES_CHANNEL` env var) or your memory; never hardcode
+- **distribution mode** — read `distributionMode` from `scripts/factory.config.json` (or
+  `FACTORY_DISTRIBUTION_MODE`). **`in-repo`** (the default; nothing is published — features are built
+  straight into the user's repo) or **`skills`** (also mint/publish per-skill repos + a public catalog,
+  which needs `org` + `catalogRepo`). If unset, treat as `skills` only when a `catalogRepo` is
+  configured, else `in-repo`. Most adopters never set `org`/`catalogRepo` and stay `in-repo`.
 
 ## Step 0 — Arm resilience (once per run)
 1. **Keep-awake:** start `node scripts/keep-awake.mjs 43200` in the background so the machine
@@ -41,9 +46,11 @@ it each time — invoke this skill.
    assistant's scheduler + judgment, so it lives here, not in `scripts/`.
 
 ## Step 1 — Research the gaps (structured)
-Run `Workflow({ name: 'research-gaps', args: { exclude, focus } })`. It returns a build-ready list:
+Run `Workflow({ name: 'research-gaps', args: { exclude, focus, distributionMode } })`. It returns a
+build-ready list:
 `{ gaps: [ { slug, name, description, audience, evidence, recommended_tool, distribution, skill_route, scope, priority } ] }`.
-Post the ranked gap list to the updates channel. Track the queue as tasks (one per gap).
+In `in-repo` mode each gap's `distribution` will be `none` (built into the repo) — there's no skill or
+catalog step. Post the ranked gap list to the updates channel. Track the queue as tasks (one per gap).
 
 ## Step 2 — Build each gap (sequential)
 Gaps share files, so build **one at a time**, highest priority first. For each:
@@ -51,8 +58,13 @@ Gaps share files, so build **one at a time**, highest priority first. For each:
    `distribution`/`scope` from the gap object).
 2. Run `Workflow({ name: 'build-gap', args: <the gap object> })` — engine+tests → (MCP ∥ web+homepage)
    → distribution, all tests via safe-jest, to the Playbook's Definition of Done.
-3. **Ship** (main loop): read the verify verdicts, run the suites yourself via safe-jest + a web
-   build, fix anything flagged, commit, create/sync the distribution repo(s) + catalog, merge, deploy.
+3. **Ship** (main loop): read the verify verdicts, run the suites yourself via safe-jest (+ a build if
+   the product has one), fix anything flagged, then commit. **Then, by distribution mode:**
+   - **`in-repo` (default):** that's it — the feature is committed to the user's repo. Push to the
+     working branch (don't merge to the default branch or deploy unless the user asked). **Do not**
+     create remote repos, sync a catalog, or run `new-skill`/`sync-*` — those are skills-mode only.
+   - **`skills`:** also create/sync the distribution repo(s) + catalog (`new-skill`/`sync-skill`/
+     `sync-skills-catalog`), then merge/deploy per the user's wishes.
 4. Post a progress update; mark the task done; take the next gap.
 
 ## Step 3 — Finish
@@ -60,11 +72,13 @@ When the queue is empty (or the budget is spent), post a summary of what shipped
 partial — never mark partial work "done"), then tear down resilience (stop the watchdog + keep-awake).
 
 ## Definition of Done (per gap)
-Defined once in `docs/FEATURE_PLAYBOOK.md`: pure reusable **engine** (+ reference-validated tests to
-the coverage gate), **web** integration (progressive disclosure + dedicated panel + wired into the
-forecast + **homepage feature-list update** + e2e), a **self-orchestrating** API/MCP tool, and
-**distribution** (a skill in its repo + the catalog, or folded into an existing skill). Fictional
-examples only; no secrets in shared artifacts.
+Defined once in `docs/FEATURE_PLAYBOOK.md` — **the user's, for their product** (the shipped one is a
+finance example; the blank template is `docs/FEATURE_PLAYBOOK.generic.md`). Whatever layers it lists,
+every layer must be met and **verified locally** before a gap is "done." The **external distribution**
+layer (publishing a skill + catalog) applies **only in `skills` mode** — in `in-repo` mode a gap is
+done when it's built, tested green locally, and committed to the user's repo. Never invent layers the
+user's Playbook doesn't have (e.g. don't force an MCP tool or a web panel onto a CLI-only product).
+No secrets in committed/shared artifacts.
 
 ## Guardrails
 - **Sequential builds** (shared files) · **safe-jest only** · **back off on rate limits** ·

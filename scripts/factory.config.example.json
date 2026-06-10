@@ -1,5 +1,6 @@
 {
-  "_comment": "Copy this to scripts/factory.config.json and fill in YOUR values. There are no built-in defaults for push targets, so the sync/publish scripts refuse to run until org + catalogRepo are set — that prevents a clone from ever pushing to someone else's repos.",
+  "_comment": "You only need this file for 'skills' mode (publishing skills to public repos + a catalog). In the default 'in-repo' mode the factory builds into your own repo and publishes nothing — no config required. There are no built-in defaults for push targets, so the sync/publish scripts refuse to run until org + catalogRepo are set, preventing a clone from ever pushing to someone else's repos.",
+  "distributionMode": "skills",
   "org": "your-github-org-or-user",
   "skillRepoPrefix": "",
   "catalogRepo": "your-org/your-skills-catalog",

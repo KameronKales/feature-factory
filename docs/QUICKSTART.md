@@ -47,14 +47,17 @@ npm test             # runs the harness test suite (node --test)
 
 Both should pass. If they don't, stop here — something's off with your Node version or the clone.
 
-## 3. Configure (only if you'll publish skills)
+## 3. Configure — probably skip this
 
-Skipping this is fine for a research-only or build-only run. You only need config to **push** skills to
-public repos:
+By default the factory runs in **`in-repo` mode**: it builds features into *your* repo and publishes
+nothing, so **no config file is needed** — point it at your repo and go. Most adopters never touch
+config.
+
+You only need a config file for **`skills` mode** (publishing skills to public repos + a catalog):
 
 ```
 cp scripts/factory.config.example.json scripts/factory.config.json
-# edit it: set at least `org` and `catalogRepo`
+# edit it: set distributionMode: "skills", plus org and catalogRepo
 ```
 
 There are deliberately **no default push targets** — the sync/publish scripts refuse to run until

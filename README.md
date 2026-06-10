@@ -55,9 +55,10 @@ its code is right just because the tests pass — it tells you what it's unsure 
                                                   └─────────────┬────────────┘
                                                                 │ 4. ship
                                                                 ▼
-                                                   commit · push · publish
-                                                   skill + catalog / deploy
-                                                   (loop to the next gap)
+                                                   commit + push to YOUR repo
+                                                   (skills mode also publishes
+                                                    a skill + catalog)
+                                                   → loop to the next gap
 
  Supporting cast — what's what:
    docs/FEATURE_PLAYBOOK.md     the Definition of Done every gap ships to   (you customize)
@@ -113,13 +114,16 @@ to bound/stop it, and what the AI can get wrong). When a run misbehaves:
    npm test         # runs the harness test suite
    ```
 
-4. **Configure** (only needed to *publish* skills) — copy the example and fill in YOUR values:
+4. **Configure — usually nothing to do.** By default the factory runs in **`in-repo` mode**: it builds
+   features straight into your own repo and publishes nothing, so **no config file is required** — point
+   it at your repo and go. You only need a config file if you want it to **publish skills to public
+   repos + a catalog** (`distributionMode: "skills"`), which needs `org` + `catalogRepo`:
    ```
-   cp scripts/factory.config.example.json scripts/factory.config.json
+   cp scripts/factory.config.example.json scripts/factory.config.json   # only for skills mode
    ```
-   There are **no built-in defaults for push targets** (org, catalog repo). The sync/publish scripts
-   **refuse to run** until you set `org` + `catalogRepo` — so a clone can never accidentally push to
-   someone else's repos. (You can also set everything via `FACTORY_*` env vars instead of the file.)
+   There are **no built-in defaults for push targets**, and the sync/publish scripts **refuse to run**
+   until `org` + `catalogRepo` are set — so a clone can never accidentally push to someone else's repos.
+   (Everything can also be set via `FACTORY_*` env vars instead of the file.)
 
 5. **Run** — in Claude Code, say *"run the feature factory"* (or invoke the `feature-factory` skill).
    See [`docs/QUICKSTART.md`](docs/QUICKSTART.md) for a guided, build-nothing first run.
@@ -141,10 +145,14 @@ Repo health checks: `npm run check` (parse-check every script) and `npm test` (t
 
 ## Configuration keys
 
+**In `in-repo` mode (the default) you can skip this whole table** — no config is required. The keys
+below only matter for `skills` mode (publishing skills to public repos + a catalog).
+
 | JSON key | Env var | Required? | Meaning |
 |----------|---------|-----------|---------|
-| `org` | `FACTORY_ORG` | **yes** | GitHub org/user that owns the per-skill repos |
-| `catalogRepo` | `FACTORY_CATALOG_REPO` | **yes** | The single public catalog repo (`owner/name`) |
+| `distributionMode` | `FACTORY_DISTRIBUTION_MODE` | no (default `in-repo`, or `skills` if `catalogRepo` is set) | `in-repo` = build into your repo, publish nothing; `skills` = also publish skill repos + catalog |
+| `org` | `FACTORY_ORG` | only for `skills` mode | GitHub org/user that owns the per-skill repos |
+| `catalogRepo` | `FACTORY_CATALOG_REPO` | only for `skills` mode | The single public catalog repo (`owner/name`) |
 | `skillRepoPrefix` | `FACTORY_SKILL_REPO_PREFIX` | no (default `""`) | Prefix for per-skill repo names |
 | `monorepo` | `FACTORY_MONOREPO` | no | Source-of-truth repo slug (shown in generated docs) |
 | `productName` | `FACTORY_PRODUCT_NAME` | no | Display name in generated READMEs |

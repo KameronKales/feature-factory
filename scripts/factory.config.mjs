@@ -32,9 +32,11 @@ const val = (envKey, fileKey, fallback) => process.env[envKey] ?? file[fileKey] 
 const required = (label, v) => {
   if (v === undefined || v === null || v === '') {
     throw new Error(
-      `feature-factory config: "${label}" is required but not set. Add it to ${cfgPath} ` +
-      `(see scripts/factory.config.example.json) or pass it via env. No default is provided ` +
-      `on purpose, so a clone can't accidentally push to the wrong repo.`,
+      `feature-factory config: "${label}" is required but not set. It's only needed to PUBLISH ` +
+      `skills (distributionMode='skills'). If you just want the factory to build into your own repo, ` +
+      `set distributionMode='in-repo' (the default when no catalogRepo is configured) and don't run ` +
+      `the sync/publish scripts. Otherwise add it to ${cfgPath} (see scripts/factory.config.example.json) ` +
+      `or pass it via env. No default is provided on purpose, so a clone can't push to the wrong repo.`,
     )
   }
   return v
@@ -50,6 +52,19 @@ const _org = val('FACTORY_ORG', 'org')                       // raw, may be unde
 const _catalog = val('FACTORY_CATALOG_REPO', 'catalogRepo')  // raw, may be undefined
 export const getOrg = () => required('org', _org)
 export const getCatalogRepo = () => required('catalogRepo', _catalog)
+
+// Distribution mode — how a built feature reaches users:
+//   'in-repo' = built straight into your own repo, nothing published externally (no org/catalog
+//               needed). This is the default, so you can point the factory at a repo and just go.
+//   'skills'  = also mint/publish per-skill repos + a public catalog (needs org + catalogRepo).
+// Default is inferred: 'skills' only when you've configured a catalogRepo, else 'in-repo'.
+// An explicit distributionMode / FACTORY_DISTRIBUTION_MODE always wins.
+const _distMode = (val('FACTORY_DISTRIBUTION_MODE', 'distributionMode', '') || '').trim()
+if (_distMode && !['in-repo', 'skills'].includes(_distMode)) {
+  throw new Error(`feature-factory config: distributionMode must be 'in-repo' or 'skills' (got '${_distMode}').`)
+}
+export const DISTRIBUTION_MODE = _distMode || (_catalog ? 'skills' : 'in-repo')
+export const PUBLISHES_SKILLS = DISTRIBUTION_MODE === 'skills'
 
 // Repo-name prefix for per-skill repos (e.g. "myproj-"). Default "" (no prefix).
 export const SKILL_REPO_PREFIX = val('FACTORY_SKILL_REPO_PREFIX', 'skillRepoPrefix', '')

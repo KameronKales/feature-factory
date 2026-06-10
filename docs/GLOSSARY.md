@@ -59,10 +59,13 @@ it's probably here. Terms are grouped roughly by when you meet them.
   tools; your product may not use MCP at all.
 - **Skill** — a Claude Code capability packaged as a folder (`SKILL.md` + `README.md`) that auto-loads
   by its description. The factory can scaffold and publish these (`new-skill.mjs`).
-- **Distribution mode** — how a gap reaches users. Two values in the gap object:
-  - **`new-skill`** — mint a new dedicated skill/repo for a distinct, high-intent capability.
-  - **`fold-in`** — add the capability to an existing skill/surface (the common case; keeps the
-    surface tight).
+- **Distribution mode** (run-level) — how built features reach users for the whole run:
+  - **`in-repo`** (default) — the feature is built straight into your own repo; nothing is published.
+    No `org`/`catalogRepo` needed. This is what most adopters use.
+  - **`skills`** — *also* publish per-skill repos + a public catalog (needs `org` + `catalogRepo`).
+- **`distribution`** (per-gap field) — where one gap lands: **`none`** (in the product's own repo —
+  what every gap gets in `in-repo` mode), **`new-skill`** (a new dedicated skill/repo), or **`fold-in`**
+  (added to an existing skill/surface).
 - **Catalog** — the single public repo that lists all your skills (`sync-skills-catalog.mjs`).
 
 ## General engineering terms used here

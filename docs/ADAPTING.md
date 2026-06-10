@@ -138,6 +138,11 @@ example's `engine`), then the layers that depend on it in parallel (`api ∥ web
   unattended run honest in any domain.
 
 **Configure (don't edit code — set env / `factory.config.json`):**
+- **Distribution mode.** Default **`in-repo`** — features are built into your own repo and nothing is
+  published, so you set *no* config and skip the whole distribution layer. Only set
+  `distributionMode: "skills"` (+ `org`, `catalogRepo`) if you actually want the factory to publish
+  per-skill repos + a public catalog. The MCP/skill machinery is Planfi-specific packaging, not a
+  requirement of the pattern.
 - **`safe-jest`'s `--worker` second test root.** The default (`workers/ai-mcp` + `jest.config.cjs`)
   is the finance example's monorepo layout. If your product has a second test root, point it there
   with `SAFE_JEST_WORKER_DIR` / `SAFE_JEST_WORKER_CONFIG` (or `safeJestWorkerDir` /

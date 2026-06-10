@@ -54,7 +54,8 @@
 - **Surface parity (NON-NEGOTIABLE):** every surface ({{SURFACES}}) must produce identical results —
   they all go through the shared layer / the same endpoint. Assert it in {{PARITY_TEST}}.
 
-**5. Distribution**
+**5. Distribution** *(skip this layer entirely in `in-repo` mode — the feature is simply built into
+your repo; there's nothing to publish. Keep it only if you run in `skills` mode.)*
 - Per decision #1: {{DISTRIBUTION_STEPS — e.g. `node scripts/new-skill.mjs <slug> [--mode local]` then
   fill SKILL.md + cross-link, OR fold the capability into <existing surface> and re-sync the catalog}}.
   Fictional examples only.

@@ -29,6 +29,9 @@ export const meta = {
 const A = typeof args === 'string' ? (args ? JSON.parse(args) : {}) : (args || {})
 const ROOT = A.root || '.'
 const exclude = A.exclude || []
+// Distribution mode: 'in-repo' (default — features land in the user's own repo, no publishing) or
+// 'skills' (also publish per-skill repos + a public catalog). Drives the `distribution` field below.
+const distributionMode = A.distributionMode === 'skills' ? 'skills' : 'in-repo'
 const focus = A.focus || "the product's core value proposition and the user journeys it must support well"
 const surface = A.surface || "the product's public surface — its API / CLI / MCP tool registry, exported modules, and core source"
 // Generic product-audit taxonomy. Override with args.domains for your product (e.g. a
@@ -58,12 +61,12 @@ const OUT = { type: 'object', additionalProperties: false, required: ['gaps'], p
       name: { type: 'string' }, description: { type: 'string' }, audience: { type: 'string' },
       evidence: { type: 'string', description: 'verified coverage gap (grep/file evidence)' },
       recommended_tool: { type: 'string', description: 'proposed capability/tool name for the build' },
-      distribution: { type: 'string', enum: ['new-skill', 'fold-in'] },
-      skill_route: { type: 'string', description: 'new skill name (new-skill) OR existing skill(s) to fold into' },
+      distribution: { type: 'string', enum: ['none', 'new-skill', 'fold-in'] },
+      skill_route: { type: 'string', description: "where it lands: 'none'→in the product's own repo; 'new-skill'→new skill name; 'fold-in'→existing skill/surface" },
       scope: { type: 'string', enum: ['full', 'lean'] },
       priority: { type: 'number', description: '1 = highest value' },
     } } } } }
-const ranked = await agent(`Project at ${ROOT}. From the domain surveys, produce the FINAL build-ready gap list. Rules: (1) VERIFY each gap is genuinely missing (not already covered by an existing capability) — drop false positives. (2) EXCLUDE anything already built/in-flight: ${JSON.stringify(exclude)}. (3) Apply docs/FEATURE_PLAYBOOK.md defaults per gap: distribution='new-skill' only for a distinct high-intent capability with its own audience, else 'fold-in' (name the existing skill/module); scope='full' unless trivial. (4) Rank by value (1=highest). Output the structured gaps array.\n\nSURVEYS:\n${JSON.stringify(surveys, null, 2)}`,
+const ranked = await agent(`Project at ${ROOT}. From the domain surveys, produce the FINAL build-ready gap list. Rules: (1) VERIFY each gap is genuinely missing (not already covered by an existing capability) — drop false positives. (2) EXCLUDE anything already built/in-flight: ${JSON.stringify(exclude)}. (3) Set distribution per the run's mode (${distributionMode}): if 'in-repo', ALWAYS use distribution='none' (the feature is built into the product's own repo — no skills/catalog) and set skill_route to the in-repo module/surface it belongs in; if 'skills', use 'new-skill' only for a distinct high-intent capability with its own audience, else 'fold-in' (name the existing skill). scope='full' unless trivial. (4) Rank by value (1=highest). Output the structured gaps array.\n\nSURVEYS:\n${JSON.stringify(surveys, null, 2)}`,
   { label: 'rank', phase: 'Rank', schema: OUT })
 log(`Build-ready gaps: ${ranked.gaps.length}`)
 return ranked
