@@ -16,8 +16,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      # Zero npm dependencies — the harness is 100% Node built-ins (node --check + node:test).
+      # Invoke the harness checks DIRECTLY (not `npm run check`/`npm test`) so this workflow
+      # works unchanged when copied into a repo whose package.json defines its own check/test
+      # scripts. Zero npm dependencies — the harness is 100% Node built-ins.
       - name: Parse-check every harness script
-        run: npm run check
-      - name: Test suite
-        run: npm test
+        run: node scripts/__tests__/syntax.check.mjs
+      - name: Harness test suite
+        run: node --test scripts/__tests__/

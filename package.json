@@ -9,6 +9,7 @@
     "node": ">=18"
   },
   "bin": {
+    "feature-factory": "scripts/init.mjs",
     "factory-new-skill": "scripts/new-skill.mjs",
     "factory-sync-skill": "scripts/sync-skill.mjs",
     "factory-sync-catalog": "scripts/sync-skills-catalog.mjs"
@@ -16,6 +17,7 @@
   "scripts": {
     "test": "node --test scripts/__tests__/",
     "check": "node scripts/__tests__/syntax.check.mjs",
+    "init": "node scripts/init.mjs",
     "new:skill": "node scripts/new-skill.mjs",
     "sync:skill": "node scripts/sync-skill.mjs",
     "sync:catalog": "node scripts/sync-skills-catalog.mjs"

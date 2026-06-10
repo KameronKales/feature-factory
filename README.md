@@ -86,9 +86,24 @@ to bound/stop it, and what the AI can get wrong). When a run misbehaves:
 
 ## Setup (any project)
 
-> Easiest path: **clone this repo as your starting point** rather than copying files piecemeal — then
-> the test/CI gate and `npm run` commands work out of the box. If you're folding it into an existing
-> repo, copy the full set below.
+**Fastest — one command, in your existing repo:**
+
+```
+cd your-product
+npx github:KameronKales/feature-factory      # add --dry-run to preview first
+```
+
+This copies the harness in (workflows, scripts, skill, docs, templates, a `feature-factory-ci.yml`),
+**without touching your `package.json` or any file you already have** (existing files are skipped; pass
+`--force` to overwrite). It defaults to **`in-repo` mode** — builds into your repo, publishes nothing,
+**no config required** — then parse-checks the result. Then say *"run the feature factory"* in Claude
+Code. Full guided first run: [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
+
+> The harness runs its own gate via `node` directly (not your `npm run check`/`test`), so it never
+> collides with scripts you already have — and the copied CI does the same.
+
+<details>
+<summary>Manual setup (copy files yourself, or fold into a repo by hand)</summary>
 
 1. **Copy these files into your repo:**
    - `scripts/*.mjs` — the reusable harness + distribution scripts
@@ -127,6 +142,8 @@ to bound/stop it, and what the AI can get wrong). When a run misbehaves:
 
 5. **Run** — in Claude Code, say *"run the feature factory"* (or invoke the `feature-factory` skill).
    See [`docs/QUICKSTART.md`](docs/QUICKSTART.md) for a guided, build-nothing first run.
+
+</details>
 
 ## The scripts
 
